@@ -106,6 +106,7 @@ struct blkcipher_walk {
 	unsigned int walk_blocksize;
 	unsigned int cipher_blocksize;
 	unsigned int alignmask;
+	unsigned int blocksize;
 };
 
 struct ablkcipher_walk {
