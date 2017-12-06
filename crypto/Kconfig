@@ -768,6 +768,7 @@ config CRYPTO_AES_ARM
 	depends on ARM
 	select CRYPTO_ALGAPI
 	select CRYPTO_AES
+	select CRYPTO_AES_ARM32_CE if (ARCH_MT6752 || ARCH_MT6735 || ARCH_MT6735M || ARCH_MT6753 || ARCH_MT8163)
 	help
 	  Use optimized AES assembler routines for ARM platforms.
 
@@ -803,6 +804,13 @@ config CRYPTO_AES_ARM_BS
 	  This implementation does not rely on any lookup tables so it is
 	  believed to be invulnerable to cache timing attacks.
 
+config CRYPTO_AES_ARM32_CE
+	tristate "AES cipher using ARMv8 32bits Crypto Extensions"
+	select CRYPTO_ABLK_HELPER
+	help
+	  AES cipher using ARMv8 32bits Crypto Extensions (HW) to
+	  accelerate.
+	  
 config CRYPTO_ANUBIS
 	tristate "Anubis cipher algorithm"
 	select CRYPTO_ALGAPI
@@ -1397,6 +1405,12 @@ config CRYPTO_LZO
 	select LZO_DECOMPRESS
 	help
 	  This is the LZO algorithm.
+
+config CRYPTO_LZ4K
+        tristate "LZ4K compression algorithm"
+        select CRYPTO_ALGAPI
+        help
+          This is the LZ4K algorithm.
 
 config CRYPTO_842
 	tristate "842 compression algorithm"

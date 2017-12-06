@@ -580,6 +580,26 @@ int tcp_ioctl(struct sock *sk, int cmd, unsigned long arg)
 		else
 			answ = tp->write_seq - tp->snd_nxt;
 		break;
+		/* MTK_NET_CHANGES */
+        case SIOCKILLSOCK:
+         {
+             struct uid_err uid_e;
+             if (copy_from_user(&uid_e, (char __user *)arg, sizeof(uid_e)))
+                 return -EFAULT;
+             printk(KERN_WARNING "SIOCKILLSOCK uid = %d , err = %d",
+			 	         uid_e.appuid, uid_e.errNum);
+             if (uid_e.errNum == 0)
+             {
+                 // handle BR release problem
+                 tcp_v4_handle_retrans_time_by_uid(uid_e);
+             }
+             else
+             {
+             tcp_v4_reset_connections_by_uid(uid_e);
+             }			 	         
+
+	         return 0;
+         }
 	default:
 		return -ENOIOCTLCMD;
 	}
@@ -2600,7 +2620,7 @@ static int do_tcp_setsockopt(struct sock *sk, int level,
 		/* Translate value in seconds to number of retransmits */
 		icsk->icsk_accept_queue.rskq_defer_accept =
 			secs_to_retrans(val, TCP_TIMEOUT_INIT / HZ,
-					TCP_RTO_MAX / HZ);
+					sysctl_tcp_rto_max / HZ);
 		break;
 
 	case TCP_WINDOW_CLAMP:
@@ -2809,7 +2829,7 @@ static int do_tcp_getsockopt(struct sock *sk, int level,
 		break;
 	case TCP_DEFER_ACCEPT:
 		val = retrans_to_secs(icsk->icsk_accept_queue.rskq_defer_accept,
-				      TCP_TIMEOUT_INIT / HZ, TCP_RTO_MAX / HZ);
+				      TCP_TIMEOUT_INIT / HZ, sysctl_tcp_rto_max / HZ);
 		break;
 	case TCP_WINDOW_CLAMP:
 		val = tp->window_clamp;
@@ -3507,10 +3527,12 @@ int tcp_nuke_addr(struct net *net, struct sockaddr *addr)
 {
 	int family = addr->sa_family;
 	unsigned int bucket;
-
+	
+	/*mtk_net:debug log*/
+  int count = 0; 
 	struct in_addr *in;
 #if defined(CONFIG_IPV6) || defined(CONFIG_IPV6_MODULE)
-	struct in6_addr *in6;
+	struct in6_addr *in6 = NULL ;
 #endif
 	if (family == AF_INET) {
 		in = &((struct sockaddr_in *)addr)->sin_addr;
@@ -3521,7 +3543,8 @@ int tcp_nuke_addr(struct net *net, struct sockaddr *addr)
 	} else {
 		return -EAFNOSUPPORT;
 	}
-
+		/*mtk_net:debug log*/
+  printk(KERN_INFO "[mtk_net][tcp]tcp_nuke_addr: tcp_hashinfo.ehash_mask = %d\n",tcp_hashinfo.ehash_mask);
 	for (bucket = 0; bucket < tcp_hashinfo.ehash_mask; bucket++) {
 		struct hlist_nulls_node *node;
 		struct sock *sk;
@@ -3572,7 +3595,12 @@ restart:
 			bh_lock_sock(sk);
 			sk->sk_err = ETIMEDOUT;
 			sk->sk_error_report(sk);
-
+			count++;
+            /*mtk_net: skip closed sk*/
+			if(sk->sk_state != TCP_CLOSE && sk->sk_shutdown != SHUTDOWN_MASK)
+				{
+					printk(KERN_INFO "[mtk_net][tcp]skip ALPS01866438 Google Issue!\n");			 
+				}
 			tcp_done(sk);
 			bh_unlock_sock(sk);
 			local_bh_enable();
@@ -3582,6 +3610,6 @@ restart:
 		}
 		spin_unlock_bh(lock);
 	}
-
+	printk(KERN_INFO "[mtk_net][tcp]tcp_nuke_addr : count = %d\n",count);
 	return 0;
 }

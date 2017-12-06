@@ -31,6 +31,12 @@ struct undef_hook {
 
 void register_undef_hook(struct undef_hook *hook);
 
+#ifdef CONFIG_MEDIATEK_SOLUTION
+struct pt_regs;
+
+int register_async_abort_handler(void (*fn)(struct pt_regs *regs, void *), void *priv);
+#endif
+
 static inline int in_exception_text(unsigned long ptr)
 {
 	extern char __exception_text_start[];

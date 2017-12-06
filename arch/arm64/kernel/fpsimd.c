@@ -21,6 +21,9 @@
 #include <linux/init.h>
 #include <linux/sched.h>
 #include <linux/signal.h>
+#include <linux/hardirq.h>
+#include <linux/cpu.h>
+
 
 #include <asm/fpsimd.h>
 #include <asm/cputype.h>
@@ -296,6 +299,22 @@ static void fpsimd_pm_init(void)
 static inline void fpsimd_pm_init(void) { }
 #endif /* CONFIG_CPU_PM */
 
+#ifdef CONFIG_MEDIATEK_SOLUTION
+static int fpsimd_hotplug(struct notifier_block *b, unsigned long action, void *hcpu)
+{
+	if (action == CPU_DYING || action == CPU_DYING_FROZEN) {
+		if (current->mm && !test_thread_flag(TIF_FOREIGN_FPSTATE))
+			fpsimd_save_state(&current->thread.fpsimd_state);
+		this_cpu_write(fpsimd_last_state, NULL);
+	} else if (action == CPU_STARTING || action == CPU_STARTING_FROZEN){
+		if (current->mm)
+			set_thread_flag(TIF_FOREIGN_FPSTATE);
+	}
+		
+	return NOTIFY_OK;
+}
+#endif
+
 /*
  * FP/SIMD support code initialisation.
  */
@@ -313,6 +332,10 @@ static int __init fpsimd_init(void)
 		pr_notice("Advanced SIMD is not implemented\n");
 	else
 		elf_hwcap |= HWCAP_ASIMD;
+
+#ifdef CONFIG_MEDIATEK_SOLUTION
+	hotcpu_notifier(fpsimd_hotplug, 0);
+#endif
 
 	return 0;
 }

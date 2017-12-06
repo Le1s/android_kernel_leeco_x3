@@ -808,6 +808,9 @@ void hw_breakpoint_thread_switch(struct task_struct *next)
  */
 static void reset_ctrl_regs(void *unused)
 {
+#ifdef CONFIG_MEDIATEK_SOLUTION
+	/* mediatek will use our own operations for hw breakpoint/watchpoint */
+#else
 	int i;
 
 	for (i = 0; i < core_num_brps; ++i) {
@@ -819,6 +822,7 @@ static void reset_ctrl_regs(void *unused)
 		write_wb_reg(AARCH64_DBG_REG_WCR, i, 0UL);
 		write_wb_reg(AARCH64_DBG_REG_WVR, i, 0UL);
 	}
+#endif
 }
 
 static int __cpuinit hw_breakpoint_reset_notify(struct notifier_block *self,

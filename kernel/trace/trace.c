@@ -11,6 +11,9 @@
  *  Copyright (C) 2004-2006 Ingo Molnar
  *  Copyright (C) 2004 Nadia Yvette Chambers
  */
+
+#define DEBUG 1
+
 #include <linux/ring_buffer.h>
 #include <generated/utsrelease.h>
 #include <linux/stacktrace.h>
@@ -38,10 +41,22 @@
 #include <linux/poll.h>
 #include <linux/nmi.h>
 #include <linux/fs.h>
+
 #include <linux/sched/rt.h>
 
 #include "trace.h"
 #include "trace_output.h"
+
+#ifdef CONFIG_MTK_SCHED_TRACERS
+#include <linux/mtk_ftrace.h>
+#define CREATE_TRACE_POINTS
+#include <trace/events/mtk_events.h>
+EXPORT_TRACEPOINT_SYMBOL(gpu_freq);
+#endif
+
+#ifdef CONFIG_MTK_EXTMEM
+#include <linux/exm_driver.h>
+#endif
 
 /*
  * On boot up, the ring buffer is set to the minimum size, so that
@@ -142,10 +157,10 @@ static int __init set_ftrace_dump_on_oops(char *str)
 
 	if (!strcmp("orig_cpu", str)) {
 		ftrace_dump_on_oops = DUMP_ORIG;
-                return 1;
-        }
+		return 1;
+	}
 
-        return 0;
+	return 0;
 }
 __setup("ftrace_dump_on_oops", set_ftrace_dump_on_oops);
 
@@ -285,6 +300,15 @@ int tracing_is_enabled(void)
 
 static unsigned long		trace_buf_size = TRACE_BUF_SIZE_DEFAULT;
 
+#ifdef CONFIG_MTK_SCHED_TRACERS
+#define CPUX_TRACE_BUF_SIZE_DEFAULT 4194304UL
+#define CPU0_to_CPUX_RATIO (1.2)
+extern unsigned int get_max_DRAM_size (void);
+static unsigned long        trace_buf_size_cpu0 = (CPUX_TRACE_BUF_SIZE_DEFAULT * CPU0_to_CPUX_RATIO);
+static unsigned long        trace_buf_size_cpuX = CPUX_TRACE_BUF_SIZE_DEFAULT;
+static bool trace_buf_size_updated_from_cmdline;
+#endif
+
 /* trace_types holds a link list of available tracers. */
 static struct tracer		*trace_types __read_mostly;
 
@@ -407,6 +431,9 @@ void tracer_tracing_on(struct trace_array *tr)
 void tracing_on(void)
 {
 	tracer_tracing_on(&global_trace);
+#ifdef CONFIG_MTK_SCHED_TRACERS
+	trace_tracing_on(1, CALLER_ADDR0);
+#endif
 }
 EXPORT_SYMBOL_GPL(tracing_on);
 
@@ -434,7 +461,7 @@ int __trace_puts(unsigned long ip, const char *str, int size)
 
 	local_save_flags(irq_flags);
 	buffer = global_trace.trace_buffer.buffer;
-	event = trace_buffer_lock_reserve(buffer, TRACE_PRINT, alloc, 
+	event = trace_buffer_lock_reserve(buffer, TRACE_PRINT, alloc,
 					  irq_flags, pc);
 	if (!event)
 		return 0;
@@ -641,6 +668,9 @@ void tracer_tracing_off(struct trace_array *tr)
  */
 void tracing_off(void)
 {
+#ifdef CONFIG_MTK_SCHED_TRACERS
+	trace_tracing_on(0, CALLER_ADDR0);
+#endif
 	tracer_tracing_off(&global_trace);
 }
 EXPORT_SYMBOL_GPL(tracing_off);
@@ -678,6 +708,10 @@ static int __init set_buf_size(char *str)
 	if (buf_size == 0)
 		return 0;
 	trace_buf_size = buf_size;
+#ifdef CONFIG_MTK_SCHED_TRACERS
+	trace_buf_size_cpu0 = trace_buf_size_cpuX = buf_size;
+	trace_buf_size_updated_from_cmdline = true;
+#endif
 	return 1;
 }
 __setup("trace_buf_size=", set_buf_size);
@@ -1200,7 +1234,7 @@ void tracing_reset(struct trace_buffer *buf, int cpu)
 	/* Make sure all commits have finished */
 	synchronize_sched();
 	ring_buffer_reset_cpu(buffer, cpu);
-
+	pr_debug("[ftrace]cpu %d trace reset\n", cpu);
 	ring_buffer_record_enable(buffer);
 }
 
@@ -1221,7 +1255,7 @@ void tracing_reset_online_cpus(struct trace_buffer *buf)
 
 	for_each_online_cpu(cpu)
 		ring_buffer_reset_cpu(buffer, cpu);
-
+	pr_debug("[ftrace]all cpu trace reset\n");
 	ring_buffer_record_enable(buffer);
 }
 
@@ -1240,8 +1274,15 @@ void tracing_reset_all_online_cpus(void)
 
 #define SAVED_CMDLINES 128
 #define NO_CMDLINE_MAP UINT_MAX
+#ifdef CONFIG_MTK_EXTMEM
+#define SIZEOF_MAP_PID_TO_CMDLINE ((PID_MAX_DEFAULT+1)*sizeof(unsigned))
+#define SIZEOF_MAP_CMDLINE_TO_PID (SAVED_CMDLINES*sizeof(unsigned))
+static unsigned *map_pid_to_cmdline;
+static unsigned *map_cmdline_to_pid;
+#else
 static unsigned map_pid_to_cmdline[PID_MAX_DEFAULT+1];
 static unsigned map_cmdline_to_pid[SAVED_CMDLINES];
+#endif
 static char saved_cmdlines[SAVED_CMDLINES][TASK_COMM_LEN];
 static unsigned saved_tgids[SAVED_CMDLINES];
 static int cmdline_idx;
@@ -1252,8 +1293,23 @@ static atomic_t trace_record_cmdline_disabled __read_mostly;
 
 static void trace_init_cmdlines(void)
 {
+#ifdef CONFIG_MTK_EXTMEM
+	map_pid_to_cmdline = (unsigned *) extmem_malloc_page_align(SIZEOF_MAP_PID_TO_CMDLINE);
+	if (map_pid_to_cmdline == NULL) {
+		pr_debug("%s[%s] ext memory alloc failed!!!\n", __FILE__, __FUNCTION__);
+		map_pid_to_cmdline = (unsigned *)vmalloc(SIZEOF_MAP_PID_TO_CMDLINE);
+	}
+	map_cmdline_to_pid = (unsigned *) extmem_malloc_page_align(SIZEOF_MAP_CMDLINE_TO_PID);
+	if (map_pid_to_cmdline == NULL) {
+		pr_debug("%s[%s] ext memory alloc failed!!!\n", __FILE__, __FUNCTION__);
+		map_cmdline_to_pid = (unsigned *)vmalloc(SIZEOF_MAP_CMDLINE_TO_PID);
+	}
+	memset(map_pid_to_cmdline, NO_CMDLINE_MAP, SIZEOF_MAP_PID_TO_CMDLINE);
+	memset(map_cmdline_to_pid, NO_CMDLINE_MAP, SIZEOF_MAP_CMDLINE_TO_PID);
+#else
 	memset(&map_pid_to_cmdline, NO_CMDLINE_MAP, sizeof(map_pid_to_cmdline));
 	memset(&map_cmdline_to_pid, NO_CMDLINE_MAP, sizeof(map_cmdline_to_pid));
+#endif
 	cmdline_idx = 0;
 }
 
@@ -1287,6 +1343,7 @@ void tracing_start(void)
 {
 	struct ring_buffer *buffer;
 	unsigned long flags;
+	bool reset_ftrace = false;
 
 	if (tracing_disabled)
 		return;
@@ -1297,9 +1354,11 @@ void tracing_start(void)
 			/* Someone screwed up their debugging */
 			WARN_ON_ONCE(1);
 			global_trace.stop_count = 0;
+			reset_ftrace = true;
 		}
 		goto out;
-	}
+	} else
+		reset_ftrace = true;
 
 	/* Prevent the buffers from switching */
 	arch_spin_lock(&ftrace_max_lock);
@@ -1318,6 +1377,12 @@ void tracing_start(void)
 
  out:
 	raw_spin_unlock_irqrestore(&global_trace.start_lock, flags);
+
+#ifdef CONFIG_MTK_SCHED_TRACERS
+	/* reset ring buffer when all readers left */
+	if (reset_ftrace == true && global_trace.stop_count == 0)
+		tracing_reset_online_cpus(&global_trace.trace_buffer);
+#endif
 }
 
 static void tracing_start_tr(struct trace_array *tr)
@@ -1958,7 +2023,8 @@ void trace_printk_init_buffers(void)
 	pr_info("ftrace: Allocated trace_printk buffers\n");
 
 	/* Expand the buffers to set size */
-	tracing_update_buffers();
+    /* M: avoid to expand buffer because of trace_printk in kernel */
+	/* tracing_update_buffers(); */
 
 	buffers_allocated = 1;
 
@@ -2447,6 +2513,9 @@ static void print_event_info(struct trace_buffer *buf, struct seq_file *m)
 	get_total_entries(buf, &total, &entries);
 	seq_printf(m, "# entries-in-buffer/entries-written: %lu/%lu   #P:%d\n",
 		   entries, total, num_online_cpus());
+#ifdef CONFIG_MTK_SCHED_TRACERS
+	print_enabled_events(m);
+#endif
 	seq_puts(m, "#\n");
 }
 
@@ -3062,6 +3131,7 @@ static int tracing_release(struct inode *inode, struct file *file)
 	if (iter->trace && iter->trace->close)
 		iter->trace->close(iter);
 
+	pr_debug("[ftrace]end reading trace file\n");
 	if (!iter->snapshot)
 		/* reenable tracing if it was previously enabled */
 		tracing_start_tr(tr);
@@ -3116,6 +3186,7 @@ static int tracing_open(struct inode *inode, struct file *file)
 	}
 
 	if (file->f_mode & FMODE_READ) {
+		pr_debug("[ftrace]start reading trace file\n");
 		iter = __tracing_open(inode, file, false);
 		if (IS_ERR(iter))
 			ret = PTR_ERR(iter);
@@ -3820,7 +3891,7 @@ static int __tracing_resize_ring_buffer(struct trace_array *tr,
 	return ret;
 }
 
-static ssize_t tracing_resize_ring_buffer(struct trace_array *tr,
+ssize_t tracing_resize_ring_buffer(struct trace_array *tr,
 					  unsigned long size, int cpu_id)
 {
 	int ret = size;
@@ -3845,7 +3916,6 @@ out:
 	return ret;
 }
 
-
 /**
  * tracing_update_buffers - used by tracing facility to expand ring buffers
  *
@@ -3859,11 +3929,40 @@ out:
 int tracing_update_buffers(void)
 {
 	int ret = 0;
+#ifdef CONFIG_MTK_FTRACE_DEFAULT_ENABLE
+	int i = 0;
+	unsigned long totalram_kb = (totalram_pages << (PAGE_SHIFT - 10));
+	unsigned long size = 0;
+#endif
 
 	mutex_lock(&trace_types_lock);
 	if (!ring_buffer_expanded)
+#ifdef CONFIG_MTK_FTRACE_DEFAULT_ENABLE
+#define KB_PER_GB (1 << 20)
+	{
+		if (!trace_buf_size_updated_from_cmdline && totalram_kb > KB_PER_GB) {
+			trace_buf_size_cpu0 = (CPUX_TRACE_BUF_SIZE_DEFAULT * CPU0_to_CPUX_RATIO * 1.25);
+			trace_buf_size_cpuX = (CPUX_TRACE_BUF_SIZE_DEFAULT * 1.25);
+		}
+
+		for_each_tracing_cpu(i) {
+
+			if (i == 0)
+				size = trace_buf_size_cpu0;
+			else
+				size = trace_buf_size_cpuX;
+
+			ret = __tracing_resize_ring_buffer(&global_trace, size, i);
+			if (ret < 0) {
+				pr_debug("[ftrace]fail to update cpu%d ring buffer to %lu KB\n", i, size >> 10);
+				break;
+			}
+		}
+	}
+#else
 		ret = __tracing_resize_ring_buffer(&global_trace, trace_buf_size,
 						RING_BUFFER_ALL_CPUS);
+#endif
 	mutex_unlock(&trace_types_lock);
 
 	return ret;
@@ -3982,7 +4081,7 @@ tracing_set_trace_write(struct file *filp, const char __user *ubuf,
 	/* strip ending whitespace. */
 	for (i = cnt - 1; i > 0 && isspace(buf[i]); i--)
 		buf[i] = 0;
-
+	pr_debug("[ftrace]set current_tracer to '%s'\n", buf);
 	err = tracing_set_tracer(buf);
 	if (err)
 		return err;
@@ -4507,6 +4606,7 @@ tracing_entries_write(struct file *filp, const char __user *ubuf,
 	struct inode *inode = file_inode(filp);
 	struct trace_array *tr = inode->i_private;
 	unsigned long val;
+	bool do_drop_cache = false;
 	int ret;
 
 	ret = kstrtoul_from_user(ubuf, cnt, 10, &val);
@@ -4519,8 +4619,13 @@ tracing_entries_write(struct file *filp, const char __user *ubuf,
 
 	/* value is in KB */
 	val <<= 10;
+resize_ring_buffer:
 	ret = tracing_resize_ring_buffer(tr, val, tracing_get_cpu(inode));
-	if (ret < 0)
+	if (ret == -ENOMEM && !do_drop_cache) {
+		do_drop_cache = true;
+		drop_pagecache();
+		goto resize_ring_buffer;
+	} else if (ret < 0)
 		return ret;
 
 	*ppos += cnt;
@@ -5944,12 +6049,20 @@ rb_simple_write(struct file *filp, const char __user *ubuf,
 		return ret;
 
 	if (buffer) {
+		if (ring_buffer_record_is_on(buffer) ^ val)
+			pr_debug("[ftrace]tracing_on is toggled to %lu\n", val);
 		mutex_lock(&trace_types_lock);
 		if (val) {
 			tracer_tracing_on(tr);
+#ifdef CONFIG_MTK_SCHED_TRACERS
+			trace_tracing_on(val, CALLER_ADDR0);
+#endif
 			if (tr->current_trace->start)
 				tr->current_trace->start(tr);
 		} else {
+#ifdef CONFIG_MTK_SCHED_TRACERS
+			trace_tracing_on(val, CALLER_ADDR0);
+#endif
 			tracer_tracing_off(tr);
 			if (tr->current_trace->stop)
 				tr->current_trace->stop(tr);
@@ -6489,7 +6602,7 @@ void ftrace_dump(enum ftrace_dump_mode oops_dump_mode)
 	for_each_tracing_cpu(cpu) {
 		atomic_dec(&per_cpu_ptr(iter.trace_buffer->data, cpu)->disabled);
 	}
- 	atomic_dec(&dump_running);
+	atomic_dec(&dump_running);
 	local_irq_restore(flags);
 }
 EXPORT_SYMBOL_GPL(ftrace_dump);
@@ -6509,7 +6622,7 @@ __init static int tracer_alloc_buffers(void)
 	/* Only allocate trace_printk buffers if a trace_printk exists */
 	if (__stop___trace_bprintk_fmt != __start___trace_bprintk_fmt)
 		/* Must be called before global_trace.buffer is allocated */
-		trace_printk_init_buffers();
+	trace_printk_init_buffers();
 
 	/* To save memory, keep the ring buffer size to its minimum */
 	if (ring_buffer_expanded)

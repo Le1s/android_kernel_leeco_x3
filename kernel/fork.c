@@ -10,7 +10,7 @@
  * Fork is rather simple, once you get the hang of it, but the memory
  * management can be a bitch. See 'mm/memory.c': 'copy_page_range()'
  */
-
+#define DEBUG
 #include <linux/slab.h>
 #include <linux/init.h>
 #include <linux/unistd.h>
@@ -71,7 +71,10 @@
 #include <linux/signalfd.h>
 #include <linux/uprobes.h>
 #include <linux/aio.h>
-
+#ifdef CONFIG_MTPROF
+#include "mt_sched_mon.h"
+#include "mt_cputime.h"
+#endif
 #include <asm/pgtable.h>
 #include <asm/pgalloc.h>
 #include <asm/uaccess.h>
@@ -315,17 +318,21 @@ static struct task_struct *dup_task_struct(struct task_struct *orig)
 	int err;
 
 	tsk = alloc_task_struct_node(node);
-	if (!tsk)
+	if (!tsk){
+		pr_err("[%d:%s] fork fail at alloc_tsk_node, please check kmem_cache_alloc_node()\n", current->pid, current->comm);
 		return NULL;
-
+	}
 	ti = alloc_thread_info_node(tsk, node);
-	if (!ti)
+	if (!ti) {
+		pr_err("[%d:%s] fork fail at alloc_t_info_node, please check alloc_pages_node()\n", current->pid, current->comm);
 		goto free_tsk;
+	}
 
 	err = arch_dup_task_struct(tsk, orig);
-	if (err)
+	if (err){
+		pr_err("[%d:%s] fork fail at arch_dup_task_struct, err:%d \n", current->pid, current->comm, err);
 		goto free_ti;
-
+	}
 	tsk->stack = ti;
 #ifdef CONFIG_SECCOMP
 	/*
@@ -589,7 +596,7 @@ static void check_mm(struct mm_struct *mm)
 		long x = atomic_long_read(&mm->rss_stat.count[i]);
 
 		if (unlikely(x))
-			printk(KERN_ALERT "BUG: Bad rss-counter state "
+			pr_err("BUG: Bad rss-counter state "
 					  "mm:%p idx:%d val:%ld\n", mm, i, x);
 	}
 
@@ -898,6 +905,9 @@ static int copy_mm(unsigned long clone_flags, struct task_struct *tsk)
 	int retval;
 
 	tsk->min_flt = tsk->maj_flt = 0;
+#ifdef CONFIG_ZRAM
+    tsk->fm_flt = tsk->swap_in = tsk->swap_out = 0;
+#endif
 	tsk->nvcsw = tsk->nivcsw = 0;
 #ifdef CONFIG_DETECT_HUNG_TASK
 	tsk->last_switch_count = tsk->nvcsw + tsk->nivcsw;
@@ -1186,6 +1196,32 @@ static void posix_cpu_timers_init(struct task_struct *tsk)
 	INIT_LIST_HEAD(&tsk->cpu_timers[2]);
 }
 
+#ifdef CONFIG_MTK_SCHED_CMP_TGS
+static void mt_init_thread_group(struct task_struct *p){
+#ifdef CONFIG_MT_SCHED_INFO
+	struct task_struct *tg = p->group_leader;
+#endif
+
+	p->thread_group_info[0].cfs_nr_running = 0;
+	p->thread_group_info[0].nr_running = 0 ;
+	p->thread_group_info[0].load_avg_ratio = 0;
+	p->thread_group_info[1].cfs_nr_running = 0;
+	p->thread_group_info[1].nr_running = 0;
+	p->thread_group_info[1].load_avg_ratio = 0;
+
+#ifdef CONFIG_MT_SCHED_INFO
+	mt_sched_printf("fork %d:%s %d:%s %lu %lu %lu, %lu %lu %lu",
+	   tg->pid, tg->comm, p->pid, p->comm,
+	   tg->thread_group_info[0].nr_running,
+	   tg->thread_group_info[0].cfs_nr_running,
+	   tg->thread_group_info[0].load_avg_ratio,
+	   tg->thread_group_info[1].cfs_nr_running,
+	   tg->thread_group_info[1].nr_running,
+	   tg->thread_group_info[1].load_avg_ratio);
+#endif
+}
+#endif
+
 /*
  * This creates a new process as a copy of the old one,
  * but does not actually start it yet.
@@ -1204,9 +1240,10 @@ static struct task_struct *copy_process(unsigned long clone_flags,
 	int retval;
 	struct task_struct *p;
 
-	if ((clone_flags & (CLONE_NEWNS|CLONE_FS)) == (CLONE_NEWNS|CLONE_FS))
+	if ((clone_flags & (CLONE_NEWNS|CLONE_FS)) == (CLONE_NEWNS|CLONE_FS)){
+		pr_err("[%d:%s] fork fail at cpp 1, clone_flags:0x%x\n", current->pid, current->comm, (unsigned int)clone_flags);
 		return ERR_PTR(-EINVAL);
-
+	}
 	if ((clone_flags & (CLONE_NEWUSER|CLONE_FS)) == (CLONE_NEWUSER|CLONE_FS))
 		return ERR_PTR(-EINVAL);
 
@@ -1214,17 +1251,19 @@ static struct task_struct *copy_process(unsigned long clone_flags,
 	 * Thread groups must share signals as well, and detached threads
 	 * can only be started up within the thread group.
 	 */
-	if ((clone_flags & CLONE_THREAD) && !(clone_flags & CLONE_SIGHAND))
+	if ((clone_flags & CLONE_THREAD) && !(clone_flags & CLONE_SIGHAND)){
+		pr_err("[%d:%s] fork fail at cpp 2, clone_flags:0x%x\n", current->pid, current->comm, (unsigned int)clone_flags);
 		return ERR_PTR(-EINVAL);
-
+	}
 	/*
 	 * Shared signal handlers imply shared VM. By way of the above,
 	 * thread groups also imply shared VM. Blocking this case allows
 	 * for various simplifications in other code.
 	 */
-	if ((clone_flags & CLONE_SIGHAND) && !(clone_flags & CLONE_VM))
+	if ((clone_flags & CLONE_SIGHAND) && !(clone_flags & CLONE_VM)){
+		pr_err("[%d:%s] fork fail at cpp 3, clone_flags:0x%x\n", current->pid, current->comm, (unsigned int)clone_flags);
 		return ERR_PTR(-EINVAL);
-
+	}
 	/*
 	 * Siblings of global init remain as zombies on exit since they are
 	 * not reaped by their parent (swapper). To solve this and to avoid
@@ -1232,9 +1271,10 @@ static struct task_struct *copy_process(unsigned long clone_flags,
 	 * from creating siblings.
 	 */
 	if ((clone_flags & CLONE_PARENT) &&
-				current->signal->flags & SIGNAL_UNKILLABLE)
+				current->signal->flags & SIGNAL_UNKILLABLE){
+		pr_err("[%d:%s] fork fail at cpp 4, clone_flags:0x%x\n", current->pid, current->comm, (unsigned int)clone_flags);
 		return ERR_PTR(-EINVAL);
-
+	}
 	/*
 	 * If the new process will be in a different pid namespace don't
 	 * allow it to share a thread group or signal handlers with the
@@ -1250,12 +1290,17 @@ static struct task_struct *copy_process(unsigned long clone_flags,
 
 	retval = -ENOMEM;
 	p = dup_task_struct(current);
-	if (!p)
+	if (!p){
+		printk("[%d:%s] fork fail at dup_task_struc, p=%p\n", current->pid, current->comm, p);
 		goto fork_out;
+	}
 
 	ftrace_graph_init_task(p);
 
 	rt_mutex_init_task(p);
+#ifdef CONFIG_MTK_SCHED_CMP_TGS
+	raw_spin_lock_init(&p->thread_group_info_lock);
+#endif
 
 #ifdef CONFIG_PROVE_LOCKING
 	DEBUG_LOCKS_WARN_ON(!p->hardirqs_enabled);
@@ -1299,6 +1344,7 @@ static struct task_struct *copy_process(unsigned long clone_flags,
 
 	p->utime = p->stime = p->gtime = 0;
 	p->utimescaled = p->stimescaled = 0;
+    p->cpu_power = 0;
 #ifndef CONFIG_VIRT_CPU_ACCOUNTING_NATIVE
 	p->prev_cputime.utime = p->prev_cputime.stime = 0;
 #endif
@@ -1479,6 +1525,9 @@ static struct task_struct *copy_process(unsigned long clone_flags,
 	 */
 	p->group_leader = p;
 	INIT_LIST_HEAD(&p->thread_group);
+#ifdef CONFIG_MTK_SCHED_CMP_TGS
+	mt_init_thread_group(p);
+#endif
 	p->task_works = NULL;
 
 	/* Need tasklist lock for parent etc handling! */
@@ -1604,6 +1653,7 @@ bad_fork_cleanup_count:
 bad_fork_free:
 	free_task(p);
 fork_out:
+	pr_err("[%d:%s] fork fail retval:0x%x\n", current->pid, current->comm, retval);
 	return ERR_PTR(retval);
 }
 
@@ -1635,6 +1685,10 @@ struct task_struct * __cpuinit fork_idle(int cpu)
  * It copies the process, and if successful kick-starts
  * it and waits for it to finish using the VM if required.
  */
+#ifdef CONFIG_SCHEDSTATS
+/* mt shceduler profiling*/
+extern void save_mtproc_info(struct task_struct *p, unsigned long long ts);
+#endif
 long do_fork(unsigned long clone_flags,
 	      unsigned long stack_start,
 	      unsigned long stack_size,
@@ -1650,8 +1704,10 @@ long do_fork(unsigned long clone_flags,
 	 * actually start allocating stuff
 	 */
 	if (clone_flags & (CLONE_NEWUSER | CLONE_NEWPID)) {
-		if (clone_flags & (CLONE_THREAD|CLONE_PARENT))
+		if (clone_flags & (CLONE_THREAD|CLONE_PARENT)) {
+			pr_err("[%d:%s] fork fail at clone_thread, flags:0x%x\n", current->pid, current->comm, (unsigned int)clone_flags);
 			return -EINVAL;
+		}
 	}
 
 	/*
@@ -1696,6 +1752,14 @@ long do_fork(unsigned long clone_flags,
 			get_task_struct(p);
 		}
 
+#ifdef CONFIG_MTPROF
+#ifdef CONFIG_MTPROF_CPUTIME
+		/* mt shceduler profiling*/
+		save_mtproc_info(p, sched_clock());
+#endif
+		/* mt throttle monitor */
+		save_mt_rt_mon_info(p, sched_clock());
+#endif
 		wake_up_new_task(p);
 
 		/* forking complete and child started to run, tell ptracer */
@@ -1710,6 +1774,7 @@ long do_fork(unsigned long clone_flags,
 		put_pid(pid);
 	} else {
 		nr = PTR_ERR(p);
+		pr_err("[%d:%s] fork fail:[%p, %d]\n", current->pid, current->comm, p,(int) nr);
 	}
 	return nr;
 }

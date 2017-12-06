@@ -32,8 +32,9 @@ static void *ion_page_pool_alloc_pages(struct ion_page_pool *pool)
 {
 	struct page *page = alloc_pages(pool->gfp_mask, pool->order);
 
-	if (!page)
+	if (!page) {
 		return NULL;
+	}
 	ion_pages_sync_for_device(NULL, page, PAGE_SIZE << pool->order,
 						DMA_BIDIRECTIONAL);
 	return page;
@@ -50,8 +51,10 @@ static int ion_page_pool_add(struct ion_page_pool *pool, struct page *page)
 	struct ion_page_pool_item *item;
 
 	item = kmalloc(sizeof(struct ion_page_pool_item), GFP_KERNEL);
-	if (!item)
+	if (!item) {
+                IONMSG("%s kmalloc failed item is null.\n", __func__);
 		return -ENOMEM;
+        }
 
 	mutex_lock(&pool->mutex);
 	item->page = page;
@@ -158,8 +161,10 @@ struct ion_page_pool *ion_page_pool_create(gfp_t gfp_mask, unsigned int order)
 {
 	struct ion_page_pool *pool = kmalloc(sizeof(struct ion_page_pool),
 					     GFP_KERNEL);
-	if (!pool)
+	if (!pool) {
+                IONMSG("%s kmalloc failed pool is null.\n", __func__);
 		return NULL;
+        }
 	pool->high_count = 0;
 	pool->low_count = 0;
 	INIT_LIST_HEAD(&pool->low_items);

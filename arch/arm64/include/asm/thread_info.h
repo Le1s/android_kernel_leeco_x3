@@ -51,6 +51,8 @@ struct thread_info {
 	struct restart_block	restart_block;
 	int			preempt_count;	/* 0 => preemptable, <0 => bug */
 	int			cpu;		/* cpu */
+	void			*regs_on_excp;
+	int			cpu_excp;
 };
 
 #define INIT_THREAD_INFO(tsk)						\
@@ -63,6 +65,7 @@ struct thread_info {
 	.restart_block	= {						\
 		.fn	= do_no_restart_syscall,			\
 	},								\
+	.cpu_excp	= 0,						\
 }
 
 #define init_thread_info	(init_thread_union.thread_info)
@@ -121,6 +124,10 @@ static inline struct thread_info *current_thread_info(void)
 #define TIF_SINGLESTEP		21
 #define TIF_32BIT		22	/* 32bit process */
 #define TIF_SWITCH_MM		23	/* deferred switch_mm */
+#if defined(CONFIG_MT_RT_SCHED)
+#define TIF_NEED_RELEASED       31
+#endif
+
 
 #define _TIF_SIGPENDING		(1 << TIF_SIGPENDING)
 #define _TIF_NEED_RESCHED	(1 << TIF_NEED_RESCHED)

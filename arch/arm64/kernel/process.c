@@ -41,8 +41,11 @@
 #include <linux/uaccess.h>
 #include <linux/random.h>
 #include <linux/hw_breakpoint.h>
+#include <linux/cpuidle.h>
+#include <linux/leds.h>
 #include <linux/personality.h>
 #include <linux/notifier.h>
+#include <linux/mtk_ram_console.h>
 
 #include <asm/compat.h>
 #include <asm/cacheflush.h>
@@ -50,6 +53,8 @@
 #include <asm/mmu_context.h>
 #include <asm/processor.h>
 #include <asm/stacktrace.h>
+
+extern void arch_reset(char mode, const char *cmd);
 
 static void setup_restart(void)
 {
@@ -85,22 +90,55 @@ EXPORT_SYMBOL_GPL(pm_power_off);
 void (*arm_pm_restart)(char str, const char *cmd);
 EXPORT_SYMBOL_GPL(arm_pm_restart);
 
+/*
+ * This is our default idle handler.
+ */
+
+void (*arm_pm_idle)(void);	 
+
+static void default_idle(void)
+{
+	if (arm_pm_idle)
+		arm_pm_idle();
+	else
+		cpu_do_idle();
+	local_irq_enable();
+}
+
 void arch_cpu_idle_prepare(void)
 {
 	local_fiq_enable();
 }
 
+void arch_cpu_idle_enter(void)
+{
+	idle_notifier_call_chain(IDLE_START);
+	ledtrig_cpu(CPU_LED_IDLE_START);
+#ifdef CONFIG_PL310_ERRATA_769419
+	wmb();
+#endif
+}
+
+void arch_cpu_idle_exit(void)
+{
+	ledtrig_cpu(CPU_LED_IDLE_END);
+	idle_notifier_call_chain(IDLE_END);
+}
+
+#ifdef CONFIG_HOTPLUG_CPU
+void arch_cpu_idle_dead(void)
+{
+       cpu_die();
+}
+#endif
+
 /*
- * This is our default idle handler.
+ * Called from the core idle loop.
  */
 void arch_cpu_idle(void)
 {
-	/*
-	 * This should do all the clock switching and wait for interrupt
-	 * tricks
-	 */
-	cpu_do_idle();
-	local_irq_enable();
+	if (cpuidle_idle_call())
+		default_idle();
 }
 
 void machine_shutdown(void)
@@ -116,25 +154,105 @@ void machine_halt(void)
 	while (1);
 }
 
+extern int reboot_pid;
+//static int reboot_pid = 0;
+
 void machine_power_off(void)
 {
+	struct task_struct *tsk;
+	/* Disable interrupts first */
+	local_irq_disable();
+	local_fiq_disable();
+	
 	machine_shutdown();
+	if(reboot_pid > 1)
+	{
+		tsk = find_task_by_vpid(reboot_pid);
+		if(tsk == NULL)
+			tsk = current;		
+		dump_stack();
+	}
+	else
+	{
+		tsk = current;
+		dump_stack();
+	}
+
+	if(tsk->real_parent)
+	{
+	 if(tsk->real_parent->real_parent)
+	 {
+	   printk("machine_shutdown: start, Proess(%s:%d). father %s:%d. grandfather %s:%d.\n",
+		tsk->comm, tsk->pid,tsk->real_parent->comm,tsk->real_parent->pid,
+		tsk->real_parent->real_parent->comm,tsk->real_parent->real_parent->pid);
+	 }
+	 else
+	 {
+	   printk("machine_shutdown: start, Proess(%s:%d). father %s:%d.\n", 
+		tsk->comm, tsk->pid,tsk->real_parent->comm,tsk->real_parent->pid);
+	 }
+	}
+	else
+	{
+	  printk("machine_shutdown: start, Proess(%s:%d)\n", tsk->comm, tsk->pid);	  
+	}
+
+#ifdef CONFIG_MTK_EMMC_SUPPORT 
+	last_kmsg_store_to_emmc();
+#endif
 	if (pm_power_off)
 		pm_power_off();
 }
 
 void machine_restart(char *cmd)
 {
-	machine_shutdown();
+	struct task_struct *tsk;	
 
 	/* Disable interrupts first */
 	local_irq_disable();
 	local_fiq_disable();
+	
+	machine_shutdown();
+
+	if(reboot_pid > 1)
+	{
+		tsk = find_task_by_vpid(reboot_pid);
+		if(tsk == NULL)
+			tsk = current;		
+		dump_stack();
+	}
+	else
+	{
+		tsk = current;
+		dump_stack();
+	}
+
+	if(tsk->real_parent)
+	{
+	 if(tsk->real_parent->real_parent)
+	 {
+	   printk("machine_shutdown: start, Proess(%s:%d). father %s:%d. grandfather %s:%d.\n",
+		tsk->comm, tsk->pid,tsk->real_parent->comm,tsk->real_parent->pid,
+		tsk->real_parent->real_parent->comm,tsk->real_parent->real_parent->pid);
+	 }
+	 else
+	 {
+	   printk("machine_shutdown: start, Proess(%s:%d). father %s:%d.\n", 
+		tsk->comm, tsk->pid,tsk->real_parent->comm,tsk->real_parent->pid);
+	 }
+	}
+	else
+	{
+	  printk("machine_shutdown: start, Proess(%s:%d)\n", tsk->comm, tsk->pid);	  
+	}
 
 	/* Now call the architecture specific reboot code. */
 	if (arm_pm_restart)
 		arm_pm_restart('h', cmd);
-
+#ifndef CONFIG_MTK_FPGA
+	else
+		arch_reset('h', cmd);
+#endif
 	/*
 	 * Whoops - the architecture was unable to reboot.
 	 */
