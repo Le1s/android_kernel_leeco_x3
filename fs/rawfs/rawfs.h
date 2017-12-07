@@ -4,10 +4,6 @@
 #include <asm/byteorder.h>
 #include <linux/list.h>
 
-#if defined(CONFIG_MT_ENG_BUILD)  /* log is only enabled in eng load */
-#define RAWFS_DBG		 pr_debug
-#endif
-
 #define RAWFS_BLOCK_FILE
 /* #define RAWFS_RAM_DISK */
 
@@ -33,14 +29,7 @@ extern int rawfs_debug_msg_mask;
 		RAWFS_DBG_DIR | RAWFS_DBG_DENTRY | \
 		RAWFS_DBG_INIT | RAWFS_DBG_GC | RAWFS_DBG_MOUNT)
 
-#ifdef RAWFS_DBG
-#define RAWFS_PRINT(category, str, ...) do { \
-	if (category & rawfs_debug_msg_mask)	{ \
-		RAWFS_DBG("rawfs: " str, ##__VA_ARGS__); \
-	} } while (0)
-#else
 #define RAWFS_PRINT(...)
-#endif
 
 #define RAWFS_MAX_FILENAME_LEN 60
 

@@ -10,10 +10,4 @@ obj-$(CONFIG_ION_TEGRA) += tegra/
 
 obj-$(CONFIG_ION_MTK) += mtk/
 
-ifeq ($(CONFIG_MT_ENG_BUILD), y)
-ccflags-y += -DION_RUNTIME_DEBUGGER=1
-else
 ccflags-y += -DION_RUNTIME_DEBUGGER=0
-endif
-
-

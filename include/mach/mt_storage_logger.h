@@ -189,15 +189,7 @@ enum logger_type {
 	LOGGER_TYPE_END
 };
 
-#if defined(CONFIG_MT_ENG_BUILD)	/* engineering mode */
-
-#define CREATE_PROC_ENTRY(proc, x, y, z, o) proc = proc_create(x, y, z, o)
-
-#else
-
 #define CREATE_PROC_ENTRY(proc, x, y, z, o)
-
-#endif
 
 /*
  * add the api to disable the storage logger

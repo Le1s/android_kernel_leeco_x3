@@ -13,14 +13,6 @@ extern bool printk_disable_uart;
 extern int mt_need_uart_console;
 #endif
 
-#if defined(CONFIG_MT_ENG_BUILD) && defined(CONFIG_LOG_TOO_MUCH_WARNING)
-
-extern void set_detect_count(int count);
-extern int get_detect_count(void);
-extern void set_logtoomuch_enable(int value);
-extern int get_logtoomuch_enable(void);
-
-#else
 static inline void set_detect_count(int count)
 {
 
@@ -40,7 +32,6 @@ static inline int get_logtoomuch_enable(void)
 {
 	return 0;
 }
-#endif
 
 static inline int printk_get_level(const char *buffer)
 {
@@ -241,25 +232,23 @@ extern void dump_stack(void) __cold;
 #define pr_fmt(fmt) fmt
 #endif
 
-#if 0
 #define pr_emerg(fmt, ...) \
-	printk(KERN_EMERG "[name:"KBUILD_MODNAME"&]"pr_fmt(fmt), ##__VA_ARGS__)
+        printk(KERN_EMERG pr_fmt(fmt), ##__VA_ARGS__)
 #define pr_alert(fmt, ...) \
-	printk(KERN_ALERT "[name:"KBUILD_MODNAME"&]"pr_fmt(fmt), ##__VA_ARGS__)
+        printk(KERN_ALERT pr_fmt(fmt), ##__VA_ARGS__)
 #define pr_crit(fmt, ...) \
-	printk(KERN_CRIT "[name:"KBUILD_MODNAME"&]"pr_fmt(fmt), ##__VA_ARGS__)
+        printk(KERN_CRIT pr_fmt(fmt), ##__VA_ARGS__)
 #define pr_err(fmt, ...) \
-	printk(KERN_ERR "[name:"KBUILD_MODNAME"&]"pr_fmt(fmt), ##__VA_ARGS__)
+        printk(KERN_ERR pr_fmt(fmt), ##__VA_ARGS__)
 #define pr_warning(fmt, ...) \
-	printk(KERN_WARNING "[name:"KBUILD_MODNAME"&]"pr_fmt(fmt), ##__VA_ARGS__)
+        printk(KERN_WARNING pr_fmt(fmt), ##__VA_ARGS__)
 #define pr_warn pr_warning
 #define pr_notice(fmt, ...) \
-	printk(KERN_NOTICE "[name:"KBUILD_MODNAME"&]"pr_fmt(fmt), ##__VA_ARGS__)
+        printk(KERN_NOTICE pr_fmt(fmt), ##__VA_ARGS__)
 #define pr_info(fmt, ...) \
-	printk(KERN_INFO "[name:"KBUILD_MODNAME"&]"pr_fmt(fmt), ##__VA_ARGS__)
+        printk(KERN_INFO pr_fmt(fmt), ##__VA_ARGS__)
 #define pr_cont(fmt, ...) \
-	printk(KERN_CONT "[name:"KBUILD_MODNAME"&]"fmt, ##__VA_ARGS__)
-#endif
+        printk(KERN_CONT fmt, ##__VA_ARGS__)
 
 /* pr_devel() should produce zero code unless DEBUG is defined */
 #ifdef DEBUG
@@ -281,125 +270,6 @@ extern void dump_stack(void) __cold;
 #else
 #define pr_debug(fmt, ...) \
 	no_printk(KERN_DEBUG "[name:"KBUILD_MODNAME"&]"pr_fmt(fmt), ##__VA_ARGS__)
-#endif
-
-/*--------  print too much patch      -------*/
-#if (defined CONFIG_MT_ENG_BUILD) && (defined CONFIG_LOG_TOO_MUCH_WARNING)
-#define pr_emerg(fmt, ...) \
-({						\
-	static bool __print_once;		\
-						\
-	if (!__print_once) {			\
-		__print_once = true;		\
-		pr_debug(fmt, ##__VA_ARGS__);	\
-		printk(KERN_EMERG "[name:"KBUILD_MODNAME"&]"pr_fmt(fmt), ##__VA_ARGS__);\
-	}	else				\
-		printk(KERN_EMERG "[name:"KBUILD_MODNAME"&]"pr_fmt(fmt), ##__VA_ARGS__);\
-})
-
-#define pr_alert(fmt, ...) \
-({						\
-	static bool __print_once;		\
-						\
-	if (!__print_once) {			\
-		__print_once = true;		\
-		pr_debug(fmt, ##__VA_ARGS__);	\
-			printk(KERN_ALERT "[name:"KBUILD_MODNAME"&]"pr_fmt(fmt), ##__VA_ARGS__);\
-	}	else				\
-		printk(KERN_ALERT "[name:"KBUILD_MODNAME"&]"pr_fmt(fmt), ##__VA_ARGS__);\
-})
-
-#define pr_crit(fmt, ...) \
-({						\
-	static bool __print_once;		\
-						\
-	if (!__print_once) {			\
-		__print_once = true;		\
-		pr_debug(fmt, ##__VA_ARGS__);	\
-		printk(KERN_CRIT "[name:"KBUILD_MODNAME"&]"pr_fmt(fmt), ##__VA_ARGS__);\
-	}	else				\
-		printk(KERN_CRIT "[name:"KBUILD_MODNAME"&]"pr_fmt(fmt), ##__VA_ARGS__);\
-})
-
-#define pr_err(fmt, ...) \
-({						\
-	static bool __print_once;		\
-						\
-	if (!__print_once) {			\
-		__print_once = true;		\
-		pr_debug(fmt, ##__VA_ARGS__);	\
-		printk(KERN_ERR "[name:"KBUILD_MODNAME"&]"pr_fmt(fmt), ##__VA_ARGS__);\
-	}	else				\
-		printk(KERN_ERR "[name:"KBUILD_MODNAME"&]"pr_fmt(fmt), ##__VA_ARGS__);\
-})
-
-#define pr_warning(fmt, ...) \
-({						\
-	static bool __print_once;		\
-						\
-	if (!__print_once) {			\
-		__print_once = true;		\
-		pr_debug(fmt, ##__VA_ARGS__);	\
-		printk(KERN_WARNING "[name:"KBUILD_MODNAME"&]"pr_fmt(fmt), ##__VA_ARGS__);\
-	}	else				\
-		printk(KERN_WARNING "[name:"KBUILD_MODNAME"&]"pr_fmt(fmt), ##__VA_ARGS__);\
-})
-#define pr_warn pr_warning
-#define pr_notice(fmt, ...) \
-({						\
-	static bool __print_once;		\
-						\
-	if (!__print_once) {			\
-		__print_once = true;		\
-		pr_debug(fmt, ##__VA_ARGS__);	\
-		printk(KERN_NOTICE "[name:"KBUILD_MODNAME"&]"pr_fmt(fmt), ##__VA_ARGS__);\
-	}	else				\
-		printk(KERN_NOTICE "[name:"KBUILD_MODNAME"&]"pr_fmt(fmt), ##__VA_ARGS__);\
-})
-
-#define pr_info(fmt, ...) \
-({						\
-	static bool __print_once;		\
-						\
-	if (!__print_once) {			\
-		__print_once = true;		\
-		pr_debug(fmt, ##__VA_ARGS__);	\
-		printk(KERN_INFO "[name:"KBUILD_MODNAME"&]"pr_fmt(fmt), ##__VA_ARGS__);\
-	}	else				\
-		printk(KERN_INFO "[name:"KBUILD_MODNAME"&]"pr_fmt(fmt), ##__VA_ARGS__);\
-})
-
-#define pr_cont(fmt, ...) \
-({						\
-	static bool __print_once;		\
-						\
-	if (!__print_once) {			\
-		__print_once = true;		\
-		pr_debug(fmt, ##__VA_ARGS__);	\
-		printk(KERN_CONT "[name:"KBUILD_MODNAME"&]"pr_fmt(fmt), ##__VA_ARGS__);\
-	}	else				\
-		printk(KERN_CONT "[name:"KBUILD_MODNAME"&]"pr_fmt(fmt), ##__VA_ARGS__);\
-})
-
-#else
-#define pr_emerg(fmt, ...) \
-	printk(KERN_EMERG pr_fmt(fmt), ##__VA_ARGS__)
-#define pr_alert(fmt, ...) \
-	printk(KERN_ALERT pr_fmt(fmt), ##__VA_ARGS__)
-#define pr_crit(fmt, ...) \
-	printk(KERN_CRIT pr_fmt(fmt), ##__VA_ARGS__)
-#define pr_err(fmt, ...) \
-	printk(KERN_ERR pr_fmt(fmt), ##__VA_ARGS__)
-#define pr_warning(fmt, ...) \
-	printk(KERN_WARNING pr_fmt(fmt), ##__VA_ARGS__)
-#define pr_warn pr_warning
-#define pr_notice(fmt, ...) \
-	printk(KERN_NOTICE pr_fmt(fmt), ##__VA_ARGS__)
-#define pr_info(fmt, ...) \
-	printk(KERN_INFO pr_fmt(fmt), ##__VA_ARGS__)
-#define pr_cont(fmt, ...) \
-	printk(KERN_CONT fmt, ##__VA_ARGS__)
-
 #endif
 
 /*

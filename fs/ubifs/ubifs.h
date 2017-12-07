@@ -165,11 +165,6 @@
 /* Maximum number of data nodes to bulk-read */
 #define UBIFS_MAX_BULK_READ 32
 
-#if defined(CONFIG_MT_ENG_BUILD)
-/* MTK: UBIFS performance log */
-#define FEATURE_UBIFS_PERF_INDEX
-#endif
-
 /*
  * Lockdep classes for UBIFS inode @ui_mutex.
  */
