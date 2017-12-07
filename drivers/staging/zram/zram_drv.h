@@ -66,10 +66,6 @@ enum zram_pageflags {
 	ZRAM_ZERO,
 
 	__NR_ZRAM_PAGEFLAGS,
-#ifdef CONFIG_ZSM
-	ZRAM_FIRST_NODE ,
-	ZRAM_RB_NODE 
-#endif
 };
 
 /*-- Data structures */
@@ -80,14 +76,6 @@ struct table {
 	u16 size;	/* object size (excluding header) */
 	u8 count;	/* object ref count (not yet used) */
 	u8 flags;
-#ifdef CONFIG_ZSM
-	struct rb_node node;
-	struct list_head head;
-	u32 copy_count;
-	u32 next_index;
-	u32 copy_index;
-	u32 checksum;	
-#endif
 } __aligned(4);
 
 struct zram_stats {
@@ -98,10 +86,6 @@ struct zram_stats {
 	u64 failed_writes;	/* can happen when memory is too low */
 	u64 invalid_io;		/* non-page-aligned I/O requests */
 	u64 notify_free;	/* no. of swap slot free notifications */
-#ifdef CONFIG_ZSM
-	u64 zsm_saved;          /* saved physical size*/
-	u64 zsm_saved4k;
-#endif
 	u32 pages_zero;		/* no. of zero filled pages */
 	u32 pages_stored;	/* no. of pages currently stored */
 	u32 good_compress;	/* % of pages with compression ratio<=50% */
@@ -147,11 +131,7 @@ extern void zram_meta_free(struct zram_meta *meta);
 extern void zram_init_device(struct zram *zram, struct zram_meta *meta);
 
 /* Type for zram compression/decompression hooks */
-#ifdef CONFIG_ZSM
-typedef int (*comp_hook) (const unsigned char *, size_t , unsigned char *, size_t *, void *, int *);
-#else
 typedef int (*comp_hook) (const unsigned char *, size_t , unsigned char *, size_t *, void *);
-#endif
 typedef int (*decomp_hook) (const unsigned char *, size_t , unsigned char *, size_t *);
 
 #endif

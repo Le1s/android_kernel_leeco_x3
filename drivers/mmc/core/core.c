@@ -36,11 +36,6 @@
 #include <linux/mmc/mmc.h>
 #include <linux/mmc/sd.h>
 
-#define FEATURE_STORAGE_PERF_INDEX
-#if !defined(CONFIG_MT_ENG_BUILD)
-#undef FEATURE_STORAGE_PERF_INDEX
-#endif
-
 #include "core.h"
 #include "bus.h"
 #include "host.h"
@@ -579,28 +574,12 @@ static void mmc_post_req(struct mmc_host *host, struct mmc_request *mrq,
  *	is returned without waiting. NULL is not an error condition.
  */
 
-#if defined(FEATURE_STORAGE_PERF_INDEX)
-extern bool start_async_req[];
-extern unsigned long long start_async_req_time[];
-extern unsigned int find_mmcqd_index(void);
-extern unsigned long long mmcqd_t_usage_wr[];
-extern unsigned long long mmcqd_t_usage_rd[];
-extern unsigned int mmcqd_rq_size_wr[];
-extern unsigned int mmcqd_rq_size_rd[];
-extern unsigned int mmcqd_rq_count[]; 
-extern unsigned int mmcqd_wr_rq_count[];
-extern unsigned int mmcqd_rd_rq_count[];
-#endif
-
 struct mmc_async_req *mmc_start_req(struct mmc_host *host,
 				    struct mmc_async_req *areq, int *error)
 {
 	int err = 0;
 	int start_err = 0;
-#if defined(FEATURE_STORAGE_PERF_INDEX)
-    unsigned long long time1 = 0;
-    unsigned int idx = 0;
-#endif
+
 	struct mmc_async_req *data = host->areq;
 
 #if defined(FEATURE_MET_MMC_INDEX)
@@ -640,32 +619,6 @@ struct mmc_async_req *mmc_start_req(struct mmc_host *host,
 				host->ops->tuning(host, host->areq->mrq);	//add for MTK msdc host <Yuchi Xu>
 			}while(host->ops->check_written_data(host,host->areq->mrq));
 
-#if defined(FEATURE_STORAGE_PERF_INDEX)
-			time1 = sched_clock();
-
-        	idx = find_mmcqd_index();
-			if (start_async_req[idx] == 1)
-			{
-				//idx = find_mmcqd_index();
-				mmcqd_rq_count[idx]++;
-
-				if(host->areq->mrq->data->flags == MMC_DATA_WRITE)
-				{
-					mmcqd_wr_rq_count[idx]++;
-					mmcqd_rq_size_wr[idx] += ((host->areq->mrq->data->blocks) * (host->areq->mrq->data->blksz));
-					mmcqd_t_usage_wr[idx] += time1 - start_async_req_time[idx];
-				}
-				else if (host->areq->mrq->data->flags == MMC_DATA_READ)
-				{
-					mmcqd_rd_rq_count[idx]++;
-					mmcqd_rq_size_rd[idx] += ((host->areq->mrq->data->blocks) * (host->areq->mrq->data->blksz));
-					mmcqd_t_usage_rd[idx] += time1 - start_async_req_time[idx];
-				}
-
-				start_async_req[idx] = 0;
-			}
-#endif
-
 			err = host->areq->err_check(host->card, host->areq);
 		}
 		/*
@@ -687,11 +640,6 @@ struct mmc_async_req *mmc_start_req(struct mmc_host *host,
 				       areq->mrq->cmd->arg,
 				       areq->mrq->data);
 		start_err = __mmc_start_data_req(host, areq->mrq);
-#if defined(FEATURE_STORAGE_PERF_INDEX)
-		start_async_req[idx] = 1;
-		start_async_req_time[idx] = sched_clock();
-#endif
-
 	}
 
 	if (host->areq) {

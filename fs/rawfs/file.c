@@ -6,10 +6,6 @@
   See the file COPYING.
 */
 
-#if defined(CONFIG_MT_ENG_BUILD)
-#define DEBUG 1
-#endif
-
 #include <linux/module.h>
 #include <linux/fs.h>
 #include <linux/aio.h>

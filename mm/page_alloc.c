@@ -2469,18 +2469,6 @@ bool gfp_pfmemalloc_allowed(gfp_t gfp_mask)
 	return !!(gfp_to_alloc_flags(gfp_mask) & ALLOC_NO_WATERMARKS);
 }
 
-/* Add for kswapd need too much CPU ANR issue */
-#ifdef CONFIG_MT_ENG_BUILD
-static uint32_t wakeup_kswapd_count = 0;
-static unsigned long print_wakeup_kswapd_timeout = 0;
-
-static uint32_t wakeup_kswapd_dump_log_order = 1;
-static uint32_t wakeup_kswapd_dump_bt_order = 1000;
-
-module_param_named(dump_log_order, wakeup_kswapd_dump_log_order, uint, S_IRUGO | S_IWUSR);
-module_param_named(dump_bt_order, wakeup_kswapd_dump_bt_order, uint, S_IRUGO | S_IWUSR);
-#endif
-
 static inline struct page *
 __alloc_pages_slowpath(gfp_t gfp_mask, unsigned int order,
 	struct zonelist *zonelist, enum zone_type high_zoneidx,
@@ -2520,31 +2508,10 @@ __alloc_pages_slowpath(gfp_t gfp_mask, unsigned int order,
 		goto nopage;
 
 restart:
-	if (!(gfp_mask & __GFP_NO_KSWAPD)) {
-	#ifdef CONFIG_MT_ENG_BUILD
-	    int print_debug_info = 0;
-	    wakeup_kswapd_count++;
-	    
-	    if (time_after_eq(jiffies, print_wakeup_kswapd_timeout)) {
-	        print_debug_info = 1;
-	        print_wakeup_kswapd_timeout = jiffies+HZ;
-        }        
-        if(print_debug_info) {
-            if(order >= wakeup_kswapd_dump_log_order) {
-                pr_debug("[WAKEUP_KSWAPD]%s wakeup kswapd, order:%d, mode:0x%x, trigger_count:%d\n",
-                            current->comm, order, gfp_mask, wakeup_kswapd_count);
-            }
-            
-	        if(order >= wakeup_kswapd_dump_bt_order) {
-	           pr_debug("[WAKEUP_KSWAPD]dump_stack\n");
-	           dump_stack();
-	        }
-	        wakeup_kswapd_count = 0;/*reset*/
-	    }
-	#endif
+	if (!(gfp_mask & __GFP_NO_KSWAPD))
 		wake_all_kswapd(order, zonelist, high_zoneidx,
 						zone_idx(preferred_zone));
-    }
+
 	/*
 	 * OK, we're below the kswapd watermark and have kicked background
 	 * reclaim. Now things get more complex, so set up alloc_flags according
@@ -2714,21 +2681,6 @@ extern void try_to_release_mtkpasr_page(int x);
 #define try_to_release_mtkpasr_page(x)		do {} while (0)
 #endif
 
-#ifdef CONFIG_MT_ENG_BUILD
-#define __LOG_PAGE_ALLOC_ORDER__
-#include <linux/stacktrace.h>
-#endif
-
-#ifdef __LOG_PAGE_ALLOC_ORDER__
-
-static int page_alloc_dump_order_threshold = 4;
-static int page_alloc_log_order_threshold = 3;
-
-//Jack remove page_alloc_order_log array for non-used
-module_param_named(dump_order_threshold, page_alloc_dump_order_threshold, int, S_IRUGO | S_IWUSR);
-module_param_named(log_order_threshold, page_alloc_log_order_threshold, int, S_IRUGO | S_IWUSR);
-#endif // __LOG_PAGE_ALLOC_ORDER__
-
 /*
  * This is the 'heart' of the zoned buddy allocator.
  */
@@ -2743,10 +2695,6 @@ __alloc_pages_nodemask(gfp_t gfp_mask, unsigned int order,
 	unsigned int cpuset_mems_cookie;
 	int alloc_flags = ALLOC_WMARK_LOW|ALLOC_CPUSET;
 	struct mem_cgroup *memcg = NULL;
-#ifdef __LOG_PAGE_ALLOC_ORDER__
-	struct stack_trace trace;
-	unsigned long entries[6] = {0};
-#endif	
 
 	gfp_mask &= gfp_allowed_mask;
 
@@ -2841,31 +2789,6 @@ retry_cpuset:
 				preferred_zone, migratetype);
 	}
 
-
-#ifdef __LOG_PAGE_ALLOC_ORDER__
-
-#ifdef CONFIG_FREEZER //Added skip debug log in IPOH
-    if (unlikely(!atomic_read(&system_freezing_cnt))) 
-   	{
-#endif 
-
-    if (order >= page_alloc_dump_order_threshold) {
-        trace.nr_entries = 0;
-        trace.max_entries = ARRAY_SIZE(entries);
-        trace.entries = entries;
-        trace.skip = 2;
-
-        save_stack_trace(&trace);
-        trace_dump_allocate_large_pages(page, order, gfp_mask, entries);
-    } else if (order >= page_alloc_log_order_threshold) {
-        trace_debug_allocate_large_pages(page, order, gfp_mask);
-    }
-
-#ifdef CONFIG_FREEZER 
-   }
-#endif 
-	
-#endif // __LOG_PAGE_ALLOC_ORDER__
 	trace_mm_page_alloc(page, order, gfp_mask, migratetype);
 
 out:
