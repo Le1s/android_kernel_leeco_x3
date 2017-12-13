@@ -1099,10 +1099,9 @@ static int mmc_init_card(struct mmc_host *host, u32 ocr,
 	}
 
 	/*
-	 * If the host supports the power_off_notify capability then
-	 * set the notification byte in the ext_csd register of device
+	 * Enable power_off_notification byte in the ext_csd register
 	 */
-	if ((host->caps2 & MMC_CAP2_POWEROFF_NOTIFY) && (card->ext_csd.rev >= 6) && (card->quirks & MMC_QUIRK_PON)){
+	if (card->ext_csd.rev >= 6) {
 		err = mmc_switch(card, EXT_CSD_CMD_SET_NORMAL,
 				 EXT_CSD_POWER_OFF_NOTIFICATION,
 				 EXT_CSD_POWER_ON,
@@ -1533,49 +1532,50 @@ static void mmc_detect(struct mmc_host *host)
 	}
 }
 
-/*
- * Suspend callback from host.
- */
-
-#define LINUX_34_DEBUG   (1)
-static int mmc_suspend(struct mmc_host *host)
+static int _mmc_suspend(struct mmc_host *host, bool is_suspend)
 {
 	int err = 0;
+	unsigned int notify_type = is_suspend ? EXT_CSD_POWER_OFF_SHORT :
+					EXT_CSD_POWER_OFF_LONG;
 
 	BUG_ON(!host);
 	BUG_ON(!host->card);
 
 	mmc_claim_host(host);
 
-	err = mmc_cache_ctrl(host, 0);
+	err = mmc_flush_cache(host->card);
 	if (err)
 		goto out;
 
-	if (mmc_can_poweroff_notify(host->card))
-		err = mmc_poweroff_notify(host->card, EXT_CSD_POWER_OFF_SHORT);
-#if (1 == LINUX_34_DEBUG)
-	else if (mmc_card_can_sleep(host) && mmc_card_keep_power(host)) {
+	if (mmc_can_poweroff_notify(host->card) &&
+		((host->caps2 & MMC_CAP2_FULL_PWR_CYCLE) || !is_suspend))
+		err = mmc_poweroff_notify(host->card, notify_type);
+	else if (mmc_card_can_sleep(host))
 		err = mmc_card_sleep(host);
-		if (!err)
-			mmc_card_set_sleep(host->card);
-	}
-
-#else
-	else if (mmc_card_can_sleep(host) && mmc_card_keep_power(host))
-		err = mmc_card_sleep(host);
-#endif
 	else if (!mmc_host_is_spi(host))
 		err = mmc_deselect_cards(host);
 
-#ifdef CONFIG_EMMC_50_FEATURE
-	host->card->state &= ~(MMC_STATE_HIGHSPEED | MMC_STATE_HIGHSPEED_200 | MMC_STATE_HIGHSPEED_400);
-#else
 	host->card->state &= ~(MMC_STATE_HIGHSPEED | MMC_STATE_HIGHSPEED_200);
-#endif
 
 out:
 	mmc_release_host(host);
 	return err;
+}
+
+/*
+ * Suspend callback from host.
+ */
+static int mmc_suspend(struct mmc_host *host)
+{
+	return _mmc_suspend(host, true);
+}
+
+/*
+ * Shutdown callback
+ */
+static int mmc_shutdown(struct mmc_host *host)
+{
+	return _mmc_suspend(host, false);
 }
 
 /*
@@ -1591,8 +1591,6 @@ static int mmc_resume(struct mmc_host *host)
 	BUG_ON(!host);
 	BUG_ON(!host->card);
 
-#if (1 == LINUX_34_DEBUG)
-
 	mmc_claim_host(host);
 	if (mmc_card_is_sleep(host->card)) {
 		err = mmc_card_awake(host);
@@ -1601,20 +1599,13 @@ static int mmc_resume(struct mmc_host *host)
 		err = mmc_init_card(host, host->ocr, host->card);
 
 #ifdef CONFIG_MTK_EMMC_CACHE
-	//do enable the cache feature when eMMC is resumed by wake up. 
+	//do enable the cache feature when eMMC is resumed by wake up.
 	if(!err)
-		mmc_cache_ctrl(host, 1);
+		mmc_flush_cache(host->card);
 #endif
 
 	mmc_release_host(host);
 
-#else
-
-	mmc_claim_host(host);
-	err = mmc_init_card(host, host->ocr, host->card);
-	mmc_release_host(host);
-
-#endif
 	/*
 	 * emmc resume fail is a critical issue, and kernel info should better be dump out
 	 */
@@ -1622,14 +1613,14 @@ static int mmc_resume(struct mmc_host *host)
 		printk(KERN_ERR "[%s]: fatal error, emmc resume failed, err=%d\n", __func__, err);
 		BUG_ON(err);
 	}
-	
+
 	return err;
 }
 
 static int mmc_power_restore(struct mmc_host *host)
 {
 	int ret;
-	
+
 #ifdef CONFIG_EMMC_50_FEATURE
 	host->card->state &= ~(MMC_STATE_HIGHSPEED | MMC_STATE_HIGHSPEED_200 | MMC_STATE_HIGHSPEED_400);
 #else
@@ -1681,6 +1672,7 @@ static const struct mmc_bus_ops mmc_ops = {
 	.resume = NULL,
 	.power_restore = mmc_power_restore,
 	.alive = mmc_alive,
+	.shutdown = mmc_shutdown,
 };
 
 static const struct mmc_bus_ops mmc_ops_unsafe = {
@@ -1692,6 +1684,7 @@ static const struct mmc_bus_ops mmc_ops_unsafe = {
 	.resume = mmc_resume,
 	.power_restore = mmc_power_restore,
 	.alive = mmc_alive,
+	.shutdown = mmc_shutdown,
 };
 
 static void mmc_attach_bus_ops(struct mmc_host *host)
@@ -1769,7 +1762,7 @@ int mmc_attach_mmc(struct mmc_host *host)
 	mmc_release_host(host);
 	err = mmc_add_card(host->card);
 
-	if ((host->caps2 & MMC_CAP2_POWEROFF_NOTIFY) && (host->card->ext_csd.rev >= 6) && (host->card->quirks & MMC_QUIRK_PON))
+	if (host->card->ext_csd.rev >= 6)
 	{
 		if (host->card->ext_csd.rev >= 6) {
 			err_pon = mmc_switch(host->card, EXT_CSD_CMD_SET_NORMAL,

@@ -487,7 +487,7 @@ static int mmc_ffu_restart(struct mmc_card *card)
 #ifdef CONFIG_MTK_EMMC_CACHE
 	if ( ( host->caps2 & MMC_CAP2_CACHE_CTRL ) &&
 		!(card->quirks & MMC_QUIRK_DISABLE_CACHE) ) {
-		mmc_cache_ctrl(host, 1);
+		mmc_flush_cache(host->card);
 	}
 #endif
 
@@ -828,7 +828,6 @@ int mmc_ffu_download(struct mmc_card *card, struct mmc_command *cmd,
 		((card->ext_csd.cache_ctrl) ? "turn off" : "keep") );
 	if ( card->ext_csd.cache_ctrl ) {
 		mmc_flush_cache(card);
-		mmc_cache_ctrl(card->host, 0);
 	}
 
 	mmc_ffu_reduce_speed(card);

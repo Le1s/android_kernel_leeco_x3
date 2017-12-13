@@ -3566,7 +3566,7 @@ int msdc_get_cache_region(void)
 
 	if (host->mmc != NULL) {
 		mmc_claim_host(host->mmc);
-		if (!mmc_cache_ctrl(host->mmc, 1))
+		if (!mmc_flush_cache(host->mmc->card))
 			pr_err("[%s]: cache_size=%dKB, cache_ctrl=%d\n", __func__,
 			       (host->mmc->card->ext_csd.cache_size / 8),
 			       host->mmc->card->ext_csd.cache_ctrl);

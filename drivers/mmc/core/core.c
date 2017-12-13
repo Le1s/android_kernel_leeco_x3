@@ -1828,7 +1828,7 @@ void mmc_power_off(struct mmc_host *host)
 	
 #ifdef CONFIG_MTK_EMMC_CACHE
     if (host->card && (mmc_card_mmc(host->card)) && (host->card->ext_csd.cache_ctrl & 0x1)) {
-        if (mmc_cache_ctrl(host, 0)) {
+        if (mmc_flush_cache(host->card)) {
             pr_err("%s: failed to disable cache\n", mmc_hostname(host));
             return ;
         }
@@ -2991,52 +2991,6 @@ int mmc_flush_cache(struct mmc_card *card)
 	return err;
 }
 EXPORT_SYMBOL(mmc_flush_cache);
-
-/*
- * Turn the cache ON/OFF.
- * Turning the cache OFF shall trigger flushing of the data
- * to the non-volatile storage.
- * This function should be called with host claimed
- */
-int mmc_cache_ctrl(struct mmc_host *host, u8 enable)
-{
-	struct mmc_card *card = host->card;
-	unsigned int timeout;
-	int err = 0;
-
-#ifdef CONFIG_MTK_EMMC_CACHE
-	//printk("[%s]: enable=%d, caps=0x%x, CACHE_FLAG=0x%x, quirks=0x%x, CACHE_QUIRK=0x%x\n", __func__, enable, host->caps2, MMC_CAP2_CACHE_CTRL, card->quirks, MMC_QUIRK_DISABLE_CACHE); 
-	if (!(host->caps2 & MMC_CAP2_CACHE_CTRL) ||
-			mmc_card_is_removable(host) || 
-			(card->quirks & MMC_QUIRK_DISABLE_CACHE)) 
-		return err;
-#else
-	if (!(host->caps2 & MMC_CAP2_CACHE_CTRL) ||
-			mmc_card_is_removable(host))
-		return err;
-#endif
-
-	if (card && mmc_card_mmc(card) &&
-			(card->ext_csd.cache_size > 0)) {
-		enable = !!enable;
-
-		if (card->ext_csd.cache_ctrl ^ enable) {
-			timeout = enable ? card->ext_csd.generic_cmd6_time : 0;
-			err = mmc_switch(card, EXT_CSD_CMD_SET_NORMAL,
-					EXT_CSD_CACHE_CTRL, enable, timeout);
-			if (err)
-				pr_err("%s: cache %s error %d\n",
-						mmc_hostname(card->host),
-						enable ? "on" : "off",
-						err);
-			else
-				card->ext_csd.cache_ctrl = enable;
-		}
-	}
-
-	return err;
-}
-EXPORT_SYMBOL(mmc_cache_ctrl);
 
 #ifdef CONFIG_PM
 

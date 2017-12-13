@@ -2180,7 +2180,7 @@ static int msdc_enable_emmc_cache(struct msdc_host *host, int enable)
 	if (c_ctrl && enable) {
 		pr_err("cache has already been in enable status, don't need enable it...\n");
 	} else if (c_ctrl && !enable) {
-		err = mmc_cache_ctrl(host->mmc, enable);
+		err = mmc_flush_cache(host->mmc->card);
 		if (err) {
 			pr_warn("%s: Cache is supported, but failed to turn off (%d)\n",
 				mmc_hostname(host->mmc), err);
@@ -2190,7 +2190,7 @@ static int msdc_enable_emmc_cache(struct msdc_host *host, int enable)
 		}
 	} else if (!c_ctrl && enable) {
 		host->mmc->caps2 |= MMC_CAP2_CACHE_CTRL;
-		err = mmc_cache_ctrl(host->mmc, enable);
+		err = mmc_flush_cache(host->mmc->card);
 		if (err) {
 			pr_warn("%s: Cache is supported, but failed to turn on (%d)\n",
 				mmc_hostname(host->mmc), err);

@@ -1662,24 +1662,6 @@ static int mmc_blk_err_check(struct mmc_card *card,
 				gen_err = 1;
 			}
 
-			if (!(brq->data.error || brq->sbc.error || brq->cmd.error || brq->stop.error)) {
-				if (status & R1_WP_VIOLATION) {
-					brq->data.error = -EROFS;
-					pr_err("[%s]: data error = %d, status=0x%x, line:%d\n",
-						__func__, brq->data.error, status, __LINE__);
-				}
-
-				if ((R1_CURRENT_STATE(status) == R1_STATE_DATA) ||
-					(R1_CURRENT_STATE(status) == R1_STATE_RCV)) {
-					err = send_stop(card, &status);
-					if (err){
-						pr_err("[%s]: %s: error %d stop status:0x%x, line%d\n",
-							__func__, req->rq_disk->disk_name, err, status, __LINE__);
-						return MMC_BLK_CMD_ERR;
-					}
-				}
-			}
-
 			/* Timeout if the device never becomes ready for data
 			 * and never leaves the program state.
 			 */
@@ -3008,8 +2990,7 @@ static void mmc_blk_remove(struct mmc_card *card)
 #endif
 }
 
-#ifdef CONFIG_PM
-static int mmc_blk_suspend(struct mmc_card *card)
+static int _mmc_blk_suspend(struct mmc_card *card)
 {
 	struct mmc_blk_data *part_md;
 	struct mmc_blk_data *md = mmc_get_drvdata(card);
@@ -3021,6 +3002,17 @@ static int mmc_blk_suspend(struct mmc_card *card)
 		}
 	}
 	return 0;
+}
+
+static void mmc_blk_shutdown(struct mmc_card *card)
+{
+	_mmc_blk_suspend(card);
+}
+
+#ifdef CONFIG_PM
+static int mmc_blk_suspend(struct mmc_card *card)
+{
+	return _mmc_blk_suspend(card);
 }
 
 static int mmc_blk_resume(struct mmc_card *card)
@@ -3054,6 +3046,7 @@ static struct mmc_driver mmc_driver = {
 	.remove		= mmc_blk_remove,
 	.suspend	= mmc_blk_suspend,
 	.resume		= mmc_blk_resume,
+	.shutdown	= mmc_blk_shutdown,
 };
 
 static int __init mmc_blk_init(void)
