@@ -92,8 +92,8 @@ static int context_struct_to_string(struct context *context, char **scontext,
 				    u32 *scontext_len);
 
 static void context_struct_compute_av(struct context *scontext,
-				      struct context *tcontext,
-				      u16 tclass,
+					struct context *tcontext,
+					u16 tclass,
 					struct av_decision *avd,
 					struct operation *ops);
 
@@ -644,8 +644,8 @@ void services_compute_operation_type(
  * structure pair for the permissions in a particular class.
  */
 static void context_struct_compute_av(struct context *scontext,
-				      struct context *tcontext,
-				      u16 tclass,
+					struct context *tcontext,
+					u16 tclass,
 					struct av_decision *avd,
 					struct operation *ops)
 {

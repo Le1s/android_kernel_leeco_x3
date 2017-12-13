@@ -62,7 +62,7 @@ struct avtab_operation {
 
 struct avtab_datum {
 	union {
-	u32 data; /* access vector or type value */
+		u32 data; /* access vector or type value */
 		struct avtab_operation *ops; /* ioctl operations */
 	} u;
 };

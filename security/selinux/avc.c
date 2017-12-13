@@ -1007,9 +1007,9 @@ static noinline struct avc_node *avc_compute_av(u32 ssid, u32 tsid,
 }
 
 static noinline int avc_denied(u32 ssid, u32 tsid,
-			 u16 tclass, u32 requested,
+				u16 tclass, u32 requested,
 				u16 cmd, unsigned flags,
-			 struct av_decision *avd)
+				struct av_decision *avd)
 {
 	if (flags & AVC_STRICT)
 		return -EACCES;
