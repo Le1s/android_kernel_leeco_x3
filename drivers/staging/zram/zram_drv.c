@@ -39,7 +39,7 @@
 
 /* Globals */
 static int zram_major;
-struct zram *zram_devices = NULL;
+struct zram *zram_devices;
 
 /* Compression/Decompression hooks */
 static comp_hook zram_compress = NULL;
@@ -137,12 +137,14 @@ static void zram_free_page(struct zram *zram, size_t index)
 		zram->stats.bad_compress--;
 
 	zs_free(meta->mem_pool, handle);
+
 	if (size <= PAGE_SIZE / 2)
 		zram->stats.good_compress--;
 
 	zram_stat64_sub(zram, &zram->stats.compr_size,
 			meta->table[index].size);
 	zram->stats.pages_stored--;
+
 	meta->table[index].handle = 0;
 	meta->table[index].size = 0;
 }
@@ -300,6 +302,7 @@ static int zram_bvec_write(struct zram *zram, struct bio_vec *bvec, u32 index,
 	}
 	ret = zram_compress(uncmem, PAGE_SIZE, src, &clen,
 			       meta->compress_workmem);
+
 	if (!is_partial_io(bvec)) {
 		kunmap_atomic(user_mem);
 		user_mem = NULL;
@@ -330,9 +333,7 @@ static int zram_bvec_write(struct zram *zram, struct bio_vec *bvec, u32 index,
 
 	if ((clen == PAGE_SIZE) && !is_partial_io(bvec))
 		src = kmap_atomic(page);
-
 	memcpy(cmem, src, clen);
-
 	if ((clen == PAGE_SIZE) && !is_partial_io(bvec))
 		kunmap_atomic(src);
 
@@ -441,20 +442,13 @@ out:
  */
 static inline int valid_io_request(struct zram *zram, struct bio *bio)
 {
-	u64 start, end, bound;
+	if (unlikely(
+		(bio->bi_sector >= (zram->disksize >> SECTOR_SHIFT)) ||
+		(bio->bi_sector & (ZRAM_SECTOR_PER_LOGICAL_BLOCK - 1)) ||
+		(bio->bi_size & (ZRAM_LOGICAL_BLOCK_SIZE - 1)))) {
 
-	/* unaligned request */
-	if (unlikely(bio->bi_sector & (ZRAM_SECTOR_PER_LOGICAL_BLOCK - 1)))
 		return 0;
-	if (unlikely(bio->bi_size & (ZRAM_LOGICAL_BLOCK_SIZE - 1)))
-		return 0;
-
-	start = bio->bi_sector;
-	end = start + (bio->bi_size >> SECTOR_SHIFT);
-	bound = zram->disksize >> SECTOR_SHIFT;
-	/* out of range range */
-	if (unlikely(start >= bound || end > bound || start > end))
-		return 0;
+	}
 
 	/* I/O request is valid */
 	return 1;
@@ -560,7 +554,7 @@ struct zram_meta *zram_meta_alloc(u64 disksize)
 		goto free_buffer;
 	}
 
-	meta->mem_pool = zs_create_pool(GFP_NOIO | __GFP_HIGHMEM | __GFP_NOMTKPASR);
+	meta->mem_pool = zs_create_pool(GFP_NOIO | __GFP_HIGHMEM);
 	if (!meta->mem_pool) {
 		pr_err("Error creating memory pool\n");
 		goto free_table;
@@ -610,12 +604,10 @@ static void zram_slot_free_notify(struct block_device *bdev,
 				unsigned long index)
 {
 	struct zram *zram;
-	zram = bdev->bd_disk->private_data;
-	/* down_write(&zram->lock); */
-	zram_free_page(zram, index);
-	/* up_write(&zram->lock); */
-	zram_stat64_inc(zram, &zram->stats.notify_free);
 
+	zram = bdev->bd_disk->private_data;
+	zram_free_page(zram, index);
+	zram_stat64_inc(zram, &zram->stats.notify_free);
 }
 
 static const struct block_device_operations zram_devops = {
@@ -625,15 +617,17 @@ static const struct block_device_operations zram_devops = {
 
 static int create_device(struct zram *zram, int device_id)
 {
-	int ret = -ENOMEM;
+	int ret = 0;
 
 	init_rwsem(&zram->lock);
 	init_rwsem(&zram->init_lock);
 	spin_lock_init(&zram->stat64_lock);
+
 	zram->queue = blk_alloc_queue(GFP_KERNEL);
 	if (!zram->queue) {
 		pr_err("Error allocating disk queue for device %d\n",
 			device_id);
+		ret = -ENOMEM;
 		goto out;
 	}
 
@@ -643,9 +637,11 @@ static int create_device(struct zram *zram, int device_id)
 	 /* gendisk structure */
 	zram->disk = alloc_disk(1);
 	if (!zram->disk) {
+		blk_cleanup_queue(zram->queue);
 		pr_warn("Error allocating disk structure for device %d\n",
 			device_id);
-		goto out_free_queue;
+		ret = -ENOMEM;
+		goto out;
 	}
 
 	zram->disk->major = zram_major;
@@ -674,17 +670,11 @@ static int create_device(struct zram *zram, int device_id)
 				&zram_disk_attr_group);
 	if (ret < 0) {
 		pr_warn("Error creating sysfs group");
-		goto out_free_disk;
+		goto out;
 	}
 
 	zram->init_done = 0;
-	return 0;
 
-out_free_disk:
-	del_gendisk(zram->disk);
-	put_disk(zram->disk);
-out_free_queue:
-	blk_cleanup_queue(zram->queue);
 out:
 	return ret;
 }
@@ -804,7 +794,6 @@ free_devices:
 	while (dev_id)
 		destroy_device(&zram_devices[--dev_id]);
 	kfree(zram_devices);
-	zram_devices = NULL;
 unregister:
 	unregister_blkdev(zram_major, "zram");
 out:
@@ -828,7 +817,6 @@ static void __exit zram_exit(void)
 	unregister_blkdev(zram_major, "zram");
 
 	kfree(zram_devices);
-	zram_devices = NULL;    
 	pr_debug("Cleanup done!\n");
 }
 
