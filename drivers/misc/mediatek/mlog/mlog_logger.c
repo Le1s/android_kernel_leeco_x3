@@ -23,11 +23,12 @@
 #endif
 
 #ifdef CONFIG_ZSMALLOC
-#include <zsmalloc.h>
+#include <linux/zsmalloc.h>
 #endif
 
 #ifdef CONFIG_ZRAM
 #include <zram_drv.h>
+static struct zram *zram_devices;
 #endif
 
 /* for collecting ion total memory usage*/

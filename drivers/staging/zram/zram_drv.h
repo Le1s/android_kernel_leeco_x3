@@ -17,8 +17,7 @@
 
 #include <linux/spinlock.h>
 #include <linux/mutex.h>
-
-#include "../zsmalloc/zsmalloc.h"
+#include <linux/zsmalloc.h>
 
 /*
  * Some arbitrary value. This is just to catch
@@ -120,9 +119,6 @@ struct zram {
 
 	struct zram_stats stats;
 };
-
-extern struct zram *zram_devices;
-unsigned int zram_get_num_devices(void);
 
 /* Type for zram compression/decompression hooks */
 typedef int (*comp_hook) (const unsigned char *, size_t , unsigned char *, size_t *, void *);

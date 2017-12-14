@@ -1,5 +1,5 @@
 ccflags-$(CONFIG_ZRAM) += -I$(srctree)/drivers/staging/zram
-ccflags-$(CONFIG_ZSMALLOC) += -I$(srctree)/drivers/staging/zsmalloc
+ccflags-$(CONFIG_ZSMALLOC) += -I$(srctree)/mm/zsmalloc
 ccflags-y += -I$(srctree)/drivers/staging/android/ion
 
 obj-y += mlog.o
