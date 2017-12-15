@@ -101,7 +101,7 @@ int ubifs_leb_read(const struct ubifs_info *c, int lnum, void *buf, int offs,
 {
 	int err;
 
-	err = ubi_leb_read(c->ubi, lnum, buf, offs, len, 0);
+	err = ubi_read(c->ubi, lnum, buf, offs, len);
 	/*
 	 * In case of %-EBADMSG print the error message only if the
 	 * @even_ebadmsg is true.
@@ -525,7 +525,6 @@ int ubifs_wbuf_sync_nolock(struct ubifs_wbuf *wbuf)
 	err = ubifs_leb_write(c, wbuf->lnum, wbuf->buf, wbuf->offs, sync_len);
 	if (err)
 		return err;
-	wbuf->w_count += sync_len; //MTK
 
 	spin_lock(&wbuf->lock);
 	wbuf->offs += sync_len;
@@ -718,7 +717,6 @@ int ubifs_wbuf_write_nolock(struct ubifs_wbuf *wbuf, void *buf, int len)
 					      wbuf->offs, wbuf->size);
 			if (err)
 				goto out;
-			wbuf->w_count += wbuf->size; //MTK
 
 			spin_lock(&wbuf->lock);
 			wbuf->offs += wbuf->size;
@@ -755,7 +753,6 @@ int ubifs_wbuf_write_nolock(struct ubifs_wbuf *wbuf, void *buf, int len)
 				      wbuf->size);
 		if (err)
 			goto out;
-		wbuf->w_count += wbuf->size; //MTK
 
 		wbuf->offs += wbuf->size;
 		len -= wbuf->avail;
@@ -775,7 +772,6 @@ int ubifs_wbuf_write_nolock(struct ubifs_wbuf *wbuf, void *buf, int len)
 				      wbuf->size);
 		if (err)
 			goto out;
-		wbuf->w_count += wbuf->size; //MTK
 
 		wbuf->offs += wbuf->size;
 		len -= wbuf->size;
@@ -798,7 +794,6 @@ int ubifs_wbuf_write_nolock(struct ubifs_wbuf *wbuf, void *buf, int len)
 				      wbuf->offs, n);
 		if (err)
 			goto out;
-		wbuf->w_count += n; //MTK
 		wbuf->offs += n;
 		aligned_len -= n;
 		len -= n;
@@ -1066,8 +1061,6 @@ int ubifs_wbuf_init(struct ubifs_info *c, struct ubifs_wbuf *wbuf)
 	wbuf->delta = WBUF_TIMEOUT_HARDLIMIT - WBUF_TIMEOUT_SOFTLIMIT;
 	wbuf->delta *= 1000000000ULL;
 	ubifs_assert(wbuf->delta <= ULONG_MAX);
-
-	wbuf->w_count = 0; //MTK
 	return 0;
 }
 

@@ -553,8 +553,7 @@ int ubifs_jnl_update(struct ubifs_info *c, const struct inode *dir,
 
 	dbg_jnl("ino %lu, dent '%.*s', data len %d in dir ino %lu",
 		inode->i_ino, nm->len, nm->name, ui->data_len, dir->i_ino);
-	if (!xent)
-		ubifs_assert(dir_ui->data_len == 0);
+	ubifs_assert(dir_ui->data_len == 0);
 	ubifs_assert(mutex_is_locked(&dir_ui->ui_mutex));
 
 	dlen = UBIFS_DENT_NODE_SZ + nm->len + 1;
@@ -573,11 +572,7 @@ int ubifs_jnl_update(struct ubifs_info *c, const struct inode *dir,
 
 	aligned_dlen = ALIGN(dlen, 8);
 	aligned_ilen = ALIGN(ilen, 8);
-	/* Make sure to account for dir_ui+data_len in length calculation
-	 * in case there is extended attribute.
-	 */
-	len = aligned_dlen + aligned_ilen +
-	      UBIFS_INO_NODE_SZ + dir_ui->data_len;
+	len = aligned_dlen + aligned_ilen + UBIFS_INO_NODE_SZ;
 	dent = kmalloc(len, GFP_NOFS);
 	if (!dent)
 		return -ENOMEM;
@@ -654,8 +649,7 @@ int ubifs_jnl_update(struct ubifs_info *c, const struct inode *dir,
 
 	ino_key_init(c, &ino_key, dir->i_ino);
 	ino_offs += aligned_ilen;
-	err = ubifs_tnc_add(c, &ino_key, lnum, ino_offs,
-			    UBIFS_INO_NODE_SZ + dir_ui->data_len);
+	err = ubifs_tnc_add(c, &ino_key, lnum, ino_offs, UBIFS_INO_NODE_SZ);
 	if (err)
 		goto out_ro;
 
@@ -707,8 +701,7 @@ int ubifs_jnl_write_data(struct ubifs_info *c, const struct inode *inode,
 		(unsigned long)key_inum(c, key), key_block(c, key), len);
 	ubifs_assert(len <= UBIFS_BLOCK_SIZE);
 
-	//data = kmalloc(dlen, GFP_NOFS | __GFP_NOWARN);
-	data = NULL;
+	data = kmalloc(dlen, GFP_NOFS | __GFP_NOWARN);
 	if (!data) {
 		/*
 		 * Fall-back to the write reserve buffer. Note, we might be
@@ -734,7 +727,6 @@ int ubifs_jnl_write_data(struct ubifs_info *c, const struct inode *inode,
 		compr_type = ui->compr_type;
 
 	out_len = dlen - UBIFS_DATA_NODE_SZ;
-	c->host_wcount += len;
 	ubifs_compress(buf, len, &data->data, &out_len, &compr_type);
 	ubifs_assert(out_len <= UBIFS_BLOCK_SIZE);
 
