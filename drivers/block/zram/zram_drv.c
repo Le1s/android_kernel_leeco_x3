@@ -31,8 +31,6 @@
 #include <linux/slab.h>
 #include <linux/string.h>
 #include <linux/vmalloc.h>
-#include <linux/proc_fs.h>
-#include <linux/seq_file.h>
 
 #include "zram_drv.h"
 
@@ -40,25 +38,6 @@
 static int zram_major;
 static struct zram *zram_devices;
 static const char *default_compressor = "lzo";
-
-/* Compression/Decompression hooks */
-static comp_hook zram_compress = NULL;
-static decomp_hook zram_decompress = NULL;
-static const char *zram_comp = NULL;
-
-/* Set above hooks */
-void zram_set_hooks(void *compress_func, void *decompress_func, const char *name)
-{
-	if (name != NULL) {
-		printk(KERN_ALERT "[%s] Compress[%p] Decompress[%p]\n",name, compress_func, decompress_func);
-		zram_comp = name;
-	} else
-		printk(KERN_ALERT "[UNKNOWN] Compress[%p] Decompress[%p]\n", compress_func, decompress_func);
-	zram_compress = (comp_hook)compress_func;
-	zram_decompress = (decomp_hook)decompress_func;
-	printk(KERN_ALERT "[%s][%d] ZCompress[%p] ZDecompress[%p]\n", __FUNCTION__, __LINE__, zram_compress, zram_decompress);
-}
-EXPORT_SYMBOL(zram_set_hooks);
 
 /* Module params (documentation at end) */
 static unsigned int num_devices = 1;
@@ -826,28 +805,6 @@ static void destroy_device(struct zram *zram)
 		blk_cleanup_queue(zram->queue);
 }
 
-static int zraminfo_proc_show(struct seq_file *m, void *v)
-{
-	if (init_done(zram_devices))
-	{
-		seq_printf(m, "SSCSPS: You know where to find this \n\n");
-		seq_printf(m, "Algorithm: [%s]\n", (zram_comp != NULL)? zram_comp : "LZO");
-	}
-	return 0;
-}
-
-static int zraminfo_proc_open(struct inode *inode, struct file *file)
-{
-	return single_open(file, zraminfo_proc_show, NULL);
-}
-
-static const struct file_operations zraminfo_proc_fops = {
-	.open		= zraminfo_proc_open,
-	.read		= seq_read,
-	.llseek		= seq_lseek,
-	.release	= single_release,
-};
-
 static int __init zram_init(void)
 {
 	int ret, dev_id;
@@ -879,13 +836,6 @@ static int __init zram_init(void)
 			goto free_devices;
 	}
 
-	/* Set compression/decompression hooks - Use LZO1X by default */
-	if (!zram_compress || !zram_decompress) {
-		zram_compress = &lzo1x_1_compress;
-		zram_decompress = &lzo1x_decompress_safe;
-	}
-	printk(KERN_ALERT "[%s][%d] ZCompress[%p] ZDecompress[%p]\n", __FUNCTION__, __LINE__, zram_compress, zram_decompress);
-	proc_create("zraminfo", 0, NULL, &zraminfo_proc_fops);
 	pr_info("Created %u device(s) ...\n", num_devices);
 
 	return 0;
@@ -908,14 +858,12 @@ static void __exit zram_exit(void)
 	for (i = 0; i < num_devices; i++) {
 		zram = &zram_devices[i];
 
-		get_disk(zram->disk);
 		destroy_device(zram);
 		/*
 		 * Shouldn't access zram->disk after destroy_device
 		 * because destroy_device already released zram->disk.
 		 */
 		zram_reset_device(zram, false);
-		put_disk(zram->disk);
 	}
 
 	unregister_blkdev(zram_major, "zram");

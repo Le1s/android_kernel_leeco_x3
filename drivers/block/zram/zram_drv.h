@@ -28,15 +28,6 @@ static const unsigned max_num_devices = 32;
 
 /*-- Configurable parameters */
 
-/* Default zram disk size: 50% of total RAM */
-static const unsigned default_disksize_perc_ram = 50;	/* 25 */
-/* Let disk size be DISKSIZE_ALIGNMENT */
-#define	DISKSIZE_ALIGNMENT	0x800000		/* 8MB */
-/* Is totalram_pages less than SUPPOSED_TOTALRAM? */
-#define SUPPOSED_TOTALRAM	0x20000			/* 512MB */
-/* Allowable max size */
-#define	MAX_DISKSIZE		0x20000000		/* 512MB */
-
 /*
  * Pages that compress to size greater than this are stored
  * uncompressed in memory.
@@ -111,9 +102,5 @@ struct zram {
 
 	struct zram_stats stats;
 };
-
-/* Type for zram compression/decompression hooks */
-typedef int (*comp_hook) (const unsigned char *, size_t , unsigned char *, size_t *, void *);
-typedef int (*decomp_hook) (const unsigned char *, size_t , unsigned char *, size_t *);
 
 #endif
