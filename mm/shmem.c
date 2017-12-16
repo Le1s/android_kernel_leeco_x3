@@ -848,11 +848,7 @@ static int shmem_writepage(struct page *page, struct writeback_control *wbc)
 		SetPageUptodate(page);
 	}
 
-#ifndef CONFIG_MEMCG_ZNDSWAP
 	swap = get_swap_page();
-#else
-	swap = get_swap_page_by_memcg(page);
-#endif
 	if (!swap.val)
 		goto redirty;
 
