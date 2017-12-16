@@ -497,10 +497,7 @@ struct mem_size_stats {
 	unsigned long swap;
 	unsigned long nonlinear;
 	u64 pss;
-        u64 pswap;
-#ifdef CONFIG_MEMCG_ZNDSWAP
-        u64 pswap_zndswap;
-#endif
+	u64 swap_pss;
 };
 
 #ifdef CONFIG_SWAP 
@@ -532,9 +529,10 @@ static void smaps_pte_entry(pte_t ptent, unsigned long addr,
 	                swp_entry_t entry;
 		        struct swap_info_struct *p;
 #endif // CONFIG_SWAP
+			int mapcount;
 
-			mss->swap += ptent_size;
-
+			mss->swap += PAGE_SIZE;
+			mapcount = swp_swapcount(swpent);
 #ifdef CONFIG_SWAP
 			entry = pte_to_swp_entry(ptent);
 			if (non_swap_entry(entry))
@@ -545,15 +543,16 @@ static void smaps_pte_entry(pte_t ptent, unsigned long addr,
 				if (swapcount == 0) {
 					swapcount = 1;
 				}
-#ifdef CONFIG_MEMCG_ZNDSWAP
-				/* It indicates 2ndswap ONLY */
-				if (swp_type(entry) == 1UL)
-					mss->pswap_zndswap += (ptent_size << PSS_SHIFT) / swapcount;
-				else
-					mss->pswap += (ptent_size << PSS_SHIFT) / swapcount;
-#else
-				mss->pswap += (ptent_size << PSS_SHIFT) / swapcount;
-#endif
+
+				// From commit 5ab7fa98de8f20e0b0b02f96747426d1ee2bea2c
+				if (mapcount >= 2) {
+	                                u64 pss_delta = (u64)PAGE_SIZE << PSS_SHIFT;
+                                	do_div(pss_delta, mapcount);
+                        	        mss->swap_pss += pss_delta;
+                	        } else {
+        	                        mss->swap_pss += (u64)PAGE_SIZE << PSS_SHIFT;
+	                        }
+
 				swap_info_unlock(p);
 			}
 #endif // CONFIG_SWAP
@@ -706,10 +705,7 @@ static int show_smap(struct seq_file *m, void *v, int is_pid)
 		   "Anonymous:      %8lu kB\n"
 		   "AnonHugePages:  %8lu kB\n"
 		   "Swap:           %8lu kB\n"
-		   "PSwap:          %8lu kB\n"
-#ifdef CONFIG_MEMCG_ZNDSWAP
-		   "PSwap_zndswap:  %8lu kB\n"
-#endif
+		   "SwapPss:        %8lu kB\n"
 		   "KernelPageSize: %8lu kB\n"
 		   "MMUPageSize:    %8lu kB\n"
 		   "Locked:         %8lu kB\n",
@@ -724,10 +720,7 @@ static int show_smap(struct seq_file *m, void *v, int is_pid)
 		   mss.anonymous >> 10,
 		   mss.anonymous_thp >> 10,
 		   mss.swap >> 10,
-		   (unsigned long)(mss.pswap >> (10 + PSS_SHIFT)),
-#ifdef CONFIG_MEMCG_ZNDSWAP
-		   (unsigned long)(mss.pswap_zndswap >> (10 + PSS_SHIFT)),
-#endif
+		   (unsigned long)(mss.swap_pss >> (10 + PSS_SHIFT)),
 		   vma_kernel_pagesize(vma) >> 10,
 		   vma_mmu_pagesize(vma) >> 10,
 		   (vma->vm_flags & VM_LOCKED) ?

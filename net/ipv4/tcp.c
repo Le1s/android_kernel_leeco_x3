@@ -3591,19 +3591,24 @@ restart:
 			spin_unlock_bh(lock);
 
 			lock_sock(sk);
-			// TODO:
-			// Check for SOCK_DEAD again, it could have changed.
-			// Add a write barrier, see tcp_reset().
 			local_bh_disable();
-			sk->sk_err = ETIMEDOUT;
-			sk->sk_error_report(sk);
+			bh_lock_sock(sk);
 			count++;
-            /*mtk_net: skip closed sk*/
+
+			/*mtk_net: skip closed sk*/
 			if(sk->sk_state != TCP_CLOSE && sk->sk_shutdown != SHUTDOWN_MASK)
 				{
 					printk(KERN_INFO "[mtk_net][tcp]skip ALPS01866438 Google Issue!\n");			 
 				}
-			tcp_done(sk);
+
+			if (!sock_flag(sk, SOCK_DEAD)) {
+				smp_wmb();  /* be consistent with tcp_reset */
+				sk->sk_err = ETIMEDOUT;
+				sk->sk_error_report(sk);
+				tcp_done(sk);
+			}
+
+			bh_unlock_sock(sk);
 			local_bh_enable();
 			release_sock(sk);
 			sock_put(sk);
