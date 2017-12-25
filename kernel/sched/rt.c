@@ -1091,7 +1091,7 @@ static int sched_rt_runtime_exceeded(struct rt_rq *rt_rq)
 
 	if (rt_rq->rt_time > runtime) {
 		struct rt_bandwidth *rt_b = sched_rt_bandwidth(rt_rq);
-		int cpu = rq_cpu(rt_rq->rq);
+		int cpu = cpu_of(rt_rq->rq);
 
 		printk_deferred("sched: cpu=%d rt_time %llu <-> runtime"
 				" [%llu -> %llu], exec_task[%d:%s], prio=%d, exec_delta_time[%llu]"
@@ -1151,7 +1151,7 @@ static void update_curr_rt(struct rq *rq)
 	struct sched_rt_entity *rt_se = &curr->rt;
 	struct rt_rq *rt_rq = rt_rq_of_se(rt_se);
 	u64 delta_exec;
-	int cpu = rq_cpu(rq);
+	int cpu = cpu_of(rq);
 
 	if (curr->sched_class != &rt_sched_class)
 		return;
