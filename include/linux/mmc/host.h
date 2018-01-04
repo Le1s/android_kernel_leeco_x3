@@ -405,6 +405,7 @@ struct mmc_host {
 #else
 	struct wake_lock	detect_wake_lock;
 #endif
+	const char		*wlock_name;
 	int			detect_change;	/* card detect flag */
 	struct mmc_slot		slot;
 

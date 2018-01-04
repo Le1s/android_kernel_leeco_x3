@@ -486,12 +486,14 @@ struct mmc_host *mmc_alloc_host(int extra, struct device *dev)
 
 	spin_lock_init(&host->lock);
 	init_waitqueue_head(&host->wq);
+	host->wlock_name = kasprintf(GFP_KERNEL,
+			"%s_detect", mmc_hostname(host));
 #ifndef CONFIG_HAS_EARLYSUSPEND
 	wakeup_source_init(&host->detect_wake_lock,
-		kasprintf(GFP_KERNEL, "%s_detect", mmc_hostname(host)));
+			host->wlock_name);
 #else
 	wake_lock_init(&host->detect_wake_lock, WAKE_LOCK_SUSPEND,
-		kasprintf(GFP_KERNEL, "%s_detect", mmc_hostname(host)));
+			host->wlock_name);
 #endif
 	INIT_DELAYED_WORK(&host->detect, mmc_rescan);
 #ifdef MMC_ENABLED_EMPTY_QUEUE_FLUSH
@@ -604,7 +606,7 @@ void mmc_free_host(struct mmc_host *host)
 #else
 	wake_lock_destroy(&host->detect_wake_lock);
 #endif
-
+	kfree(host->wlock_name);
 	mmc_latency_hist_sysfs_exit(host);
 	put_device(&host->class_dev);
 }

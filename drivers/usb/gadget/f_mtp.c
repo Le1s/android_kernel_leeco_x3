@@ -147,7 +147,7 @@ struct mtp_dev {
 	struct file *xfer_file;
 	loff_t xfer_file_offset;
 	int64_t xfer_file_length;
-	unsigned xfer_send_header;
+	unsigned int xfer_send_header;
 	uint16_t xfer_command;
 	uint32_t xfer_transaction_id;
 	int xfer_result;
@@ -646,6 +646,7 @@ static inline struct mtp_dev *func_to_mtp(struct usb_function *f)
 static struct usb_request *mtp_request_new(struct usb_ep *ep, int buffer_size)
 {
 	struct usb_request *req = usb_ep_alloc_request(ep, GFP_KERNEL);
+
 	if (!req)
 		return NULL;
 
@@ -875,7 +876,7 @@ static ssize_t mtp_read(struct file *fp, char __user *buf,
 	struct usb_composite_dev *cdev = dev->cdev;
 	struct usb_request *req;
 	ssize_t r = count;
-	unsigned xfer;
+	unsigned int xfer;
 	int ret = 0;
 
 	DBG(cdev, "mtp_read(%zu)\n", count);
@@ -1004,7 +1005,7 @@ static ssize_t mtp_write(struct file *fp, const char __user *buf,
 	struct usb_composite_dev *cdev = dev->cdev;
 	struct usb_request *req = 0;
 	ssize_t r = count;
-	unsigned xfer;
+	unsigned int xfer;
 	int sendZLP = 0;
 	int ret;
 
@@ -1505,7 +1506,7 @@ static int mtp_send_event(struct mtp_dev *dev, struct mtp_event *event)
 	return ret;
 }
 
-static long mtp_ioctl(struct file *fp, unsigned code, unsigned long value)
+static long mtp_ioctl(struct file *fp, unsigned int code, unsigned long value)
 {
 	struct mtp_dev *dev = fp->private_data;
 	struct file *filp = NULL;
@@ -1858,6 +1859,7 @@ static int mtp_ctrlrequest(struct usb_composite_dev *cdev,
 #endif
                                 && w_value == 0) {
 			struct mtp_device_status *status = cdev->req->buf;
+
 			status->wLength =
 				__constant_cpu_to_le16(sizeof(*status));
 
@@ -1927,6 +1929,7 @@ static int mtp_ctrlrequest(struct usb_composite_dev *cdev,
 	/* respond with data transfer or status phase? */
 	if (value >= 0) {
 		int rc;
+
 		cdev->req->zero = value < w_length;
 		cdev->req->length = value;
 		rc = usb_ep_queue(cdev->gadget->ep0, cdev->req, GFP_ATOMIC);
@@ -2137,7 +2140,7 @@ mtp_function_unbind(struct usb_configuration *c, struct usb_function *f)
 }
 
 static int mtp_function_set_alt(struct usb_function *f,
-		unsigned intf, unsigned alt)
+		unsigned int intf, unsigned int alt)
 {
 	struct mtp_dev	*dev = func_to_mtp(f);
 	struct usb_composite_dev *cdev = f->config->cdev;
