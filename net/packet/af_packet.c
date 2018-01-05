@@ -1304,13 +1304,12 @@ static int fanout_add(struct sock *sk, u16 id, u16 type_flags)
 		return -EINVAL;
 	}
 
-	if (!po->running)
-		return -EINVAL;
-
-	if (po->fanout)
-		return -EALREADY;
-
 	mutex_lock(&fanout_mutex);
+
+	err = -EALREADY;
+	if (po->fanout)
+		goto out;
+
 	match = NULL;
 	list_for_each_entry(f, &fanout_list, list) {
 		if (f->id == id &&
@@ -1344,7 +1343,10 @@ static int fanout_add(struct sock *sk, u16 id, u16 type_flags)
 		list_add(&match->list, &fanout_list);
 	}
 	err = -EINVAL;
-	if (match->type == type &&
+
+	spin_lock(&po->bind_lock);
+	if (po->running &&
+	    match->type == type &&
 	    match->prot_hook.type == po->prot_hook.type &&
 	    match->prot_hook.dev == po->prot_hook.dev) {
 		err = -ENOSPC;
@@ -1356,6 +1358,13 @@ static int fanout_add(struct sock *sk, u16 id, u16 type_flags)
 			err = 0;
 		}
 	}
+	spin_unlock(&po->bind_lock);
+
+	if (err && !atomic_read(&match->sk_ref)) {
+		list_del(&match->list);
+		kfree(match);
+	}
+
 out:
 	mutex_unlock(&fanout_mutex);
 	return err;
@@ -1366,17 +1375,16 @@ static void fanout_release(struct sock *sk)
 	struct packet_sock *po = pkt_sk(sk);
 	struct packet_fanout *f;
 
-	f = po->fanout;
-	if (!f)
-		return;
-
 	mutex_lock(&fanout_mutex);
-	po->fanout = NULL;
+	f = po->fanout;
+	if (f) {
+		po->fanout = NULL;
 
-	if (atomic_dec_and_test(&f->sk_ref)) {
-		list_del(&f->list);
-		dev_remove_pack(&f->prot_hook);
-		kfree(f);
+		if (atomic_dec_and_test(&f->sk_ref)) {
+			list_del(&f->list);
+			dev_remove_pack(&f->prot_hook);
+			kfree(f);
+		}
 	}
 	mutex_unlock(&fanout_mutex);
 }
@@ -2492,17 +2500,20 @@ static int packet_release(struct socket *sock)
 static int packet_do_bind(struct sock *sk, struct net_device *dev, __be16 protocol)
 {
 	struct packet_sock *po = pkt_sk(sk);
+	int ret = 0;
+
+	lock_sock(sk);
+
+	spin_lock(&po->bind_lock);
 
 	if (po->fanout) {
 		if (dev)
 			dev_put(dev);
 
-		return -EINVAL;
+		ret = -EINVAL;
+		goto out_unlock;
 	}
 
-	lock_sock(sk);
-
-	spin_lock(&po->bind_lock);
 	unregister_prot_hook(sk, true);
 
 	po->num = protocol;
@@ -2529,7 +2540,7 @@ static int packet_do_bind(struct sock *sk, struct net_device *dev, __be16 protoc
 out_unlock:
 	spin_unlock(&po->bind_lock);
 	release_sock(sk);
-	return 0;
+	return ret;
 }
 
 /*
@@ -3161,12 +3172,19 @@ packet_setsockopt(struct socket *sock, int level, int optname, char __user *optv
 
 		if (optlen != sizeof(val))
 			return -EINVAL;
-		if (po->rx_ring.pg_vec || po->tx_ring.pg_vec)
-			return -EBUSY;
 		if (copy_from_user(&val, optval, sizeof(val)))
 			return -EFAULT;
-		po->tp_reserve = val;
-		return 0;
+		if (val > INT_MAX)
+			return -EINVAL;
+		lock_sock(sk);
+		if (po->rx_ring.pg_vec || po->tx_ring.pg_vec) {
+			ret = -EBUSY;
+		} else {
+			po->tp_reserve = val;
+			ret = 0;
+		}
+		release_sock(sk);
+		return ret;
 	}
 	case PACKET_LOSS:
 	{
@@ -3650,8 +3668,8 @@ static int packet_set_ring(struct sock *sk, union tpacket_req_u *req_u,
 		if (unlikely(req->tp_block_size & (PAGE_SIZE - 1)))
 			goto out;
 		if (po->tp_version >= TPACKET_V3 &&
-		    (int)(req->tp_block_size -
-			  BLK_PLUS_PRIV(req_u->req3.tp_sizeof_priv)) <= 0)
+		    req->tp_block_size <=
+			  BLK_PLUS_PRIV((u64)req_u->req3.tp_sizeof_priv))
 			goto out;
 		if (unlikely(req->tp_frame_size < po->tp_hdrlen +
 					po->tp_reserve))
@@ -3661,6 +3679,8 @@ static int packet_set_ring(struct sock *sk, union tpacket_req_u *req_u,
 
 		rb->frames_per_block = req->tp_block_size/req->tp_frame_size;
 		if (unlikely(rb->frames_per_block <= 0))
+			goto out;
+		if (unlikely(req->tp_block_size > UINT_MAX / req->tp_block_nr))
 			goto out;
 		if (unlikely((rb->frames_per_block * req->tp_block_nr) !=
 					req->tp_frame_nr))
