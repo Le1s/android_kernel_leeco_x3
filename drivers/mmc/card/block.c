@@ -1936,6 +1936,24 @@ static int mmc_blk_err_check(struct mmc_card *card,
 				gen_err = 1;
 			}
 
+			if (!(brq->data.error || brq->sbc.error || brq->cmd.error || brq->stop.error)) {
+				if (status & R1_WP_VIOLATION) {
+					brq->data.error = -EROFS;
+					pr_err("[%s]: data error = %d, status=0x%x, line:%d\n",
+						__func__, brq->data.error, status, __LINE__);
+				}
+
+				if ((R1_CURRENT_STATE(status) == R1_STATE_DATA) ||
+					(R1_CURRENT_STATE(status) == R1_STATE_RCV)) {
+					err = send_stop(card, &status);
+					if (err){
+						pr_err("[%s]: %s: error %d stop status:0x%x, line%d\n",
+							__func__, req->rq_disk->disk_name, err, status, __LINE__);
+						return MMC_BLK_CMD_ERR;
+					}
+				}
+			}
+
 			/* Timeout if the device never becomes ready for data
 			 * and never leaves the program state.
 			 */
