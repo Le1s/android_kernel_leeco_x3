@@ -963,21 +963,6 @@ static int mmc_init_card(struct mmc_host *host, u32 ocr,
 	if (err)
 		goto err;
 
-	#ifdef CONFIG_MMC_FFU
-	if ( oldcard && (oldcard->state & MMC_STATE_FFUED) ) {
-		/* After FFU, some fields in CID may change,
-		   so just copy new CID into card->raw_cid */
-		memcpy((void *)oldcard->raw_cid, (void *)cid, sizeof(cid));
-		err = mmc_decode_cid(oldcard);
-		if (err)
-			goto free_card;
-
-		card = oldcard;
-		card->nr_parts=0;
-		oldcard = NULL;
-
-	} else
-	#endif
 	if (oldcard) {
 		if (memcmp((void *)cid, (void *)oldcard->raw_cid, sizeof(cid)) != 0) {
 			err = -ENOENT;
@@ -1108,7 +1093,7 @@ static int mmc_init_card(struct mmc_host *host, u32 ocr,
 	/*
 	 * Enable power_off_notification byte in the ext_csd register
 	 */
-	if (card->ext_csd.rev >= 6) {
+	if ((card->ext_csd.rev >= 6) && (card->quirks & MMC_QUIRK_PON)){
 		err = mmc_switch(card, EXT_CSD_CMD_SET_NORMAL,
 				 EXT_CSD_POWER_OFF_NOTIFICATION,
 				 EXT_CSD_POWER_ON,
@@ -1454,13 +1439,6 @@ err:
 	return err;
 }
 
-#if defined(CONFIG_MMC_FFU)
-int mmc_reinit_oldcard(struct mmc_host *host)
-{
-	return mmc_init_card(host, host->ocr, host->card);
-}
-#endif
-
 static int mmc_can_poweroff_notify(const struct mmc_card *card)
 {
 	return card &&
@@ -1539,6 +1517,7 @@ static void mmc_detect(struct mmc_host *host)
 	}
 }
 
+#define LINUX_34_DEBUG   (1)
 static int _mmc_suspend(struct mmc_host *host, bool is_suspend)
 {
 	int err = 0;
@@ -1557,12 +1536,25 @@ static int _mmc_suspend(struct mmc_host *host, bool is_suspend)
 	if (mmc_can_poweroff_notify(host->card) &&
 		((host->caps2 & MMC_CAP2_FULL_PWR_CYCLE) || !is_suspend))
 		err = mmc_poweroff_notify(host->card, notify_type);
-	else if (mmc_card_can_sleep(host))
+#if (1 == LINUX_34_DEBUG)
+	else if (mmc_card_can_sleep(host) && mmc_card_keep_power(host)) {
 		err = mmc_card_sleep(host);
+		if (!err)
+			mmc_card_set_sleep(host->card);
+	}
+
+#else
+	else if (mmc_card_can_sleep(host) && mmc_card_keep_power(host))
+		err = mmc_card_sleep(host);
+#endif
 	else if (!mmc_host_is_spi(host))
 		err = mmc_deselect_cards(host);
 
+#ifdef CONFIG_EMMC_50_FEATURE
+	host->card->state &= ~(MMC_STATE_HIGHSPEED | MMC_STATE_HIGHSPEED_200 | MMC_STATE_HIGHSPEED_400);
+#else
 	host->card->state &= ~(MMC_STATE_HIGHSPEED | MMC_STATE_HIGHSPEED_200);
+#endif
 
 out:
 	mmc_release_host(host);
@@ -1769,7 +1761,7 @@ int mmc_attach_mmc(struct mmc_host *host)
 	mmc_release_host(host);
 	err = mmc_add_card(host->card);
 
-	if (host->card->ext_csd.rev >= 6)
+	if ((host->card->ext_csd.rev >= 6) && (host->card->quirks & MMC_QUIRK_PON))
 	{
 		if (host->card->ext_csd.rev >= 6) {
 			err_pon = mmc_switch(host->card, EXT_CSD_CMD_SET_NORMAL,

@@ -36,7 +36,6 @@
  */
 #define MMC_IDLE_FLUSH_TIME_MS 1500
 #endif
-#define cls_dev_to_mmc_host(d)	container_of(d, struct mmc_host, class_dev)
 
 static void mmc_host_classdev_release(struct device *dev)
 {

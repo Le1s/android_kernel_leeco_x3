@@ -261,10 +261,6 @@ struct mmc_card {
 #define MMC_STATE_NEED_flush	(1<<21)		/* card need to do FLUSH OPS */
 #endif
 
-#ifdef CONFIG_MMC_FFU
-#define MMC_STATE_FFUED         (1<<22)     /* card has been FFUed */
-#endif
-
 	unsigned int		quirks; 	/* card quirks */
 #define MMC_QUIRK_LENIENT_FN0	(1<<0)		/* allow SDIO FN0 writes outside of the VS CCCR range */
 #define MMC_QUIRK_BLKSZ_FOR_BYTE_MODE (1<<1)	/* use func->cur_blksize */
