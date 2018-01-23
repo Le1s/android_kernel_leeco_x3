@@ -62,12 +62,12 @@ MODULE_PARM_DESC (rndis_debug, "enable debugging");
 int rndis_ul_max_pkt_per_xfer_rcvd;
 module_param(rndis_ul_max_pkt_per_xfer_rcvd, int, S_IRUGO);
 MODULE_PARM_DESC(rndis_ul_max_pkt_per_xfer_rcvd,
-	"Max num of REMOTE_NDIS_PACKET_MSGs received in a single transfer");
+		"Max num of REMOTE_NDIS_PACKET_MSGs received in a single transfer");
 
 int rndis_ul_max_xfer_size_rcvd;
 module_param(rndis_ul_max_xfer_size_rcvd, int, S_IRUGO);
 MODULE_PARM_DESC(rndis_ul_max_xfer_size_rcvd,
-	"Max size of bus transfer received");
+		"Max size of bus transfer received");
 
 
 static rndis_params rndis_per_dev_params[RNDIS_MAX_CONFIGS];

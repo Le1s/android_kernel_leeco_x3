@@ -193,6 +193,7 @@ int ping_v6_sendmsg(struct kiocb *iocb, struct sock *sk, struct msghdr *msg,
 						 len);
 	}
 	release_sock(sk);
+
 	if (err)
 		return err;
 

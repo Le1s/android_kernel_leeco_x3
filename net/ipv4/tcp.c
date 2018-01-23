@@ -3576,9 +3576,7 @@ int tcp_nuke_addr(struct net *net, struct sockaddr *addr)
 {
 	int family = addr->sa_family;
 	unsigned int bucket;
-	
-	/*mtk_net:debug log*/
-  int count = 0; 
+
 	struct in_addr *in;
 #if defined(CONFIG_IPV6) || defined(CONFIG_IPV6_MODULE)
 	struct in6_addr *in6 = NULL ;
@@ -3592,8 +3590,7 @@ int tcp_nuke_addr(struct net *net, struct sockaddr *addr)
 	} else {
 		return -EAFNOSUPPORT;
 	}
-		/*mtk_net:debug log*/
-  printk(KERN_INFO "[mtk_net][tcp]tcp_nuke_addr: tcp_hashinfo.ehash_mask = %d\n",tcp_hashinfo.ehash_mask);
+
 	for (bucket = 0; bucket < tcp_hashinfo.ehash_mask; bucket++) {
 		struct hlist_nulls_node *node;
 		struct sock *sk;
@@ -3644,12 +3641,7 @@ restart:
 			bh_lock_sock(sk);
 			sk->sk_err = ETIMEDOUT;
 			sk->sk_error_report(sk);
-			count++;
-            /*mtk_net: skip closed sk*/
-			if(sk->sk_state != TCP_CLOSE && sk->sk_shutdown != SHUTDOWN_MASK)
-				{
-					printk(KERN_INFO "[mtk_net][tcp]skip ALPS01866438 Google Issue!\n");			 
-				}
+
 			tcp_done(sk);
 			bh_unlock_sock(sk);
 			local_bh_enable();
@@ -3659,6 +3651,6 @@ restart:
 		}
 		spin_unlock_bh(lock);
 	}
-	printk(KERN_INFO "[mtk_net][tcp]tcp_nuke_addr : count = %d\n",count);
+
 	return 0;
 }

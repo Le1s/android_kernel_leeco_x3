@@ -356,6 +356,8 @@ static void audio_send(struct audio_dev *audio)
 	frames -= audio->frames_sent;
 
 	/* We need to send something to keep the pipeline going */
+	if (frames <= 0)
+		frames = FRAMES_PER_MSEC;
 
 	while (frames > 0) {
 		req = audio_req_get(audio);

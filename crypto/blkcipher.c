@@ -245,6 +245,7 @@ static int blkcipher_walk_next(struct blkcipher_desc *desc,
 		}
 	}
 
+	bsize = min(walk->walk_blocksize, n);
 	n = scatterwalk_clamp(&walk->in, n);
 	n = scatterwalk_clamp(&walk->out, n);
 

@@ -117,7 +117,6 @@ struct ion_handle {
 #endif
 };
 
-
 /**
  * struct ion_buffer - metadata for a particular buffer
  * @ref:		refernce count
@@ -347,7 +346,7 @@ int ion_heap_init_deferred_free(struct ion_heap *heap);
 /**
  * ion_heap_freelist_add - add a buffer to the deferred free list
  * @heap:		the heap
- * @buffer: 		the buffer
+ * @buffer:		the buffer
  *
  * Adds an item to the deferred freelist.
  */
@@ -423,6 +422,7 @@ void ion_cma_heap_destroy(struct ion_heap *);
 
 struct ion_heap *ion_fb_heap_create(struct ion_platform_heap *);
 void ion_fb_heap_destroy(struct ion_heap *);
+
 /**
  * kernel api to allocate/free from carveout -- used when carveout is
  * used to back an architecture specific custom heap
@@ -433,6 +433,7 @@ void ion_carveout_free(struct ion_heap *heap, ion_phys_addr_t addr,
 		       unsigned long size);
 
 int ion_device_destory_heaps(struct ion_device *dev, int need_lock);
+
 /**
  * The carveout heap returns physical addresses, since 0 may be a valid
  * physical address, this is used to indicate allocation failed
