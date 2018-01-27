@@ -3323,7 +3323,7 @@ static long binder_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
 		}
 		break;
 	case BINDER_SET_CONTEXT_MGR:
-        ret = binder_ioctl_set_ctx_mgr(filp, thread);
+        ret = binder_ioctl_set_ctx_mgr(filp);
         if (ret)
             goto err;
 		break;
