@@ -39,7 +39,6 @@
 #include <linux/pid_namespace.h>
 #include <linux/ratelimit.h>
 #include <linux/security.h>
->>>>>>> e221554046e5... Add security hooks to binder and implement the hooks for SELinux.
 
 #ifdef CONFIG_ANDROID_BINDER_IPC_32BIT
 #define BINDER_IPC_32BIT 1
