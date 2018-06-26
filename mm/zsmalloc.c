@@ -110,7 +110,6 @@
 #endif
 #endif
 #define _PFN_BITS		(MAX_PHYSMEM_BITS - PAGE_SHIFT)
-#define OBJ_INDEX_BITS	(BITS_PER_LONG - _PFN_BITS - 1)
 
 /*
  * Memory for allocating for handle keeps object position by

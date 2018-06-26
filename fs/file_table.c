@@ -156,7 +156,6 @@ over:
 		if (!fd_dump_all_files) {
 			struct task_struct *p;
 			struct files_struct *files;
-			pid_t pid;
 			fd_dump_all_files = 0x1;
 			for_each_process(p) {
 				files = p->files;

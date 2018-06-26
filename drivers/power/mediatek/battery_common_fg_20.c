@@ -589,6 +589,8 @@ static int battery_set_property(struct power_supply *psy,
             printk("justin test for charging current\n");
     	    usb_charging_current = val->intval;
             break;
+		default:
+			break;
 	}
 
 	return ret;

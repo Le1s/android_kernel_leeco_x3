@@ -1953,13 +1953,6 @@ bool EnableSideToneFilter(bool stf_on)
         // using STF result & enable & set half tap num
         uint32_t write_reg_value = (bypass_stf_on << 31) | (stf_on << 8) | kSideToneHalfTapNum;
 
-        // set side tone coefficient
-        const bool enable_read_write = true; // enable read/write side tone coefficient
-        const bool read_write_sel = true;    // for write case
-        const bool sel_ch2 = false;          // using uplink ch1 as STF input
-        uint32_t   read_reg_value = Afe_Get_Reg(AFE_SIDETONE_CON0);
-        size_t coef_addr = 0;
-
         printk("%s(), AFE_SIDETONE_GAIN[0x%x] = 0x%x\n", __FUNCTION__, AFE_SIDETONE_GAIN, 0);
         // set side tone gain
         Afe_Set_Reg(AFE_SIDETONE_GAIN, 0, MASK_ALL);
@@ -1967,6 +1960,13 @@ bool EnableSideToneFilter(bool stf_on)
         printk("%s(), AFE_SIDETONE_CON1[0x%x] = 0x%x\n", __FUNCTION__, AFE_SIDETONE_CON1, write_reg_value);
 
 #if 0 // no need to set sidetone coeffecient. spend too much time during incall
+        // set side tone coefficient
+        const bool enable_read_write = true; // enable read/write side tone coefficient
+        const bool read_write_sel = true;    // for write case
+        const bool sel_ch2 = false;          // using uplink ch1 as STF input
+        uint32_t   read_reg_value = Afe_Get_Reg(AFE_SIDETONE_CON0);
+        size_t coef_addr = 0;
+
         for (coef_addr = 0; coef_addr < kSideToneHalfTapNum; coef_addr++)
         {
             bool old_write_ready = (read_reg_value >> 29) & 0x1;
@@ -4303,10 +4303,9 @@ unsigned int Align64ByteSize(unsigned int insize)
 
 bool SetHighAddr(Soc_Aud_Digital_Block MemBlock,bool usingdram)
 {
-         printk("%s MemBlock = %d usingdram = %d\n",__func__,MemBlock,usingdram);
+	printk("%s MemBlock = %d usingdram = %d\n",__func__,MemBlock,usingdram);
 	bool Hignbitenable = enable_4G()&usingdram;
-	switch(MemBlock)
-	{
+	switch(MemBlock){
 		case Soc_Aud_Digital_Block_MEM_DL1:
 			Afe_Set_Reg(AFE_MEMIF_MSB , Hignbitenable ,0x1);
 			break;
@@ -4334,8 +4333,10 @@ bool SetHighAddr(Soc_Aud_Digital_Block MemBlock,bool usingdram)
 		case Soc_Aud_Digital_Block_MEM_HDMI:
 			Afe_Set_Reg(AFE_MEMIF_MSB , Hignbitenable<<8, 0x1<<8);
 			break;
-    }
-    return true;
+		default:
+			break;
+	}
+	return true;
 }
 
 void AudDrv_checkDLISRStatus(void)

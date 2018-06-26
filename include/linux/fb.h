@@ -23,7 +23,9 @@ struct dma_buf;
 struct videomode;
 struct device_node;
 
+#ifndef CONFIG_DMA_SHARED_BUFFER
 #define CONFIG_DMA_SHARED_BUFFER
+#endif
 
 /* Definitions below are used in the parsed monitor specs */
 #define FB_DPMS_ACTIVE_OFF	1
