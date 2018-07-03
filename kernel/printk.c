@@ -281,9 +281,7 @@ void mt_disable_uart(void)
 void mt_enable_uart(void)
 {
 	if (mt_need_uart_console == 1) {
-		if (printk_disable_uart == 0)
-			return;
-			printk_disable_uart = 0;
+		printk_disable_uart = 0;
 	}
 }
 

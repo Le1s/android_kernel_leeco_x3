@@ -49,6 +49,8 @@ static const char *const parse_color_format(DpColorFormat fmt)
 		return "eYVYU";
 	case eYUY2:
 		return "eYUY2";
+	default:
+		return "eRGBA8888";
 	}
 }
 

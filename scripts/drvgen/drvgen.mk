@@ -164,10 +164,6 @@ $(DRVGEN_OUT)/cust_i2c.dtsi: $(DRVGEN_TOOL) $(DWS_FILE)
 	@mkdir -p $(dir $@)
 	@$(DRVGEN_TOOL) $(DWS_FILE) $(DRVGEN_OUT) $(DRVGEN_OUT_PATH) i2c_dtsi
 
-$(DRVGEN_OUT)/cust_adc.dtsi: $(DRVGEN_TOOL) $(DWS_FILE)
-	@mkdir -p $(dir $@)
-	@$(DRVGEN_TOOL) $(DWS_FILE) $(DRVGEN_OUT) $(DRVGEN_OUT_PATH) adc_dtsi
-
 $(DRVGEN_OUT)/cust_md1_eint.dtsi: $(DRVGEN_TOOL) $(DWS_FILE)
 	@mkdir -p $(dir $@)
 	@$(DRVGEN_TOOL) $(DWS_FILE) $(DRVGEN_OUT) $(DRVGEN_OUT_PATH) md1_eint_dtsi
