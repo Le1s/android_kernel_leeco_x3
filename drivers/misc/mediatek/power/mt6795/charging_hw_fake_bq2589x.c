@@ -276,7 +276,7 @@ static kal_uint32 charging_get_charger_det_status(void *data)
 
 	*(kal_bool*)(data) = val;
     
-	battery_xlog_printk(BAT_LOG_CRTI,"[charging_get_charger_det_status][JJP][20140401] CHRDET status = %d\n", val);  
+	//battery_xlog_printk(BAT_LOG_CRTI,"[charging_get_charger_det_status][JJP][20140401] CHRDET status = %d\n", val);
 /*	if(val == 0)
 		g_charger_type = CHARGER_UNKNOWN;*/
 #endif

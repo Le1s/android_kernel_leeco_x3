@@ -864,7 +864,7 @@ static int charging_led_flag = 0;
 	pmic_config_interface(0x10A, 0x17,0xFF,0);
 	pmic_read_interface(0x108,	 &val,0x1, 1);
 	*(kal_bool*)(data) = val;
-	battery_log(BAT_LOG_CRTI,"[charging_get_charger_det_status][JJP][20140401] CHRDET status = %d\n", val);
+	//battery_log(BAT_LOG_CRTI,"[charging_get_charger_det_status][JJP][20140401] CHRDET status = %d\n", val);
 /*	if(val == 0)
 		g_charger_type = CHARGER_UNKNOWN;*/
 

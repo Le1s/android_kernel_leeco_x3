@@ -29,7 +29,8 @@ int als_data_report(struct input_dev *dev, int value, int status)
 
 int ps_data_report(struct input_dev *dev, int value,int status)
 {
-	printk("+ps_data_report! %d, %d\n",value,status);
+	if(value != 5 && status != 2)
+		printk("+ps_data_report! %d, %d\n",value,status);
 	input_report_rel(dev, EVENT_TYPE_PS_VALUE, (value+1));
 	input_report_rel(dev, EVENT_TYPE_PS_STATUS, status);
 	input_sync(dev); 

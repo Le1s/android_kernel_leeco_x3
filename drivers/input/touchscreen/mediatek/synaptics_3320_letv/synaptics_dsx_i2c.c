@@ -2059,7 +2059,7 @@ static int touch_event_handler(void *data)
 
 		wait_event_interruptible(waiter, tpd_flag != 0);
 		tpd_flag = 0;
-		printk("tpd int\n");
+		//printk("tpd int\n");
 		TPD_DEBUG_SET_TIME;
 		set_current_state(TASK_RUNNING);
 		if (!rmi4_data->touch_stopped)

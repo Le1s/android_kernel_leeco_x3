@@ -337,7 +337,7 @@ int PMIC_IMM_GetOneChannelValue(upmu_adc_chl_list_enum dwChannel, int deCount, i
 			pmic_config_interface( (kal_uint32)(MT6332_CHR_CON14), 0x1, MT6332_PMIC_RG_AUXADC_USB_DET_MASK, MT6332_PMIC_RG_AUXADC_USB_DET_SHIFT);
 			pmic_config_interface( (kal_uint32)(MT6332_CHR_CON14), 0x0, MT6332_PMIC_RG_AUXADC_DCIN_DET_MASK, MT6332_PMIC_RG_AUXADC_DCIN_DET_SHIFT);
 		} else if (mt6332_upmu_get_swcid()>=PMIC6332_E2_CID_CODE) {
-			battery_log(BAT_LOG_CRTI,  "[PMIC_IMM_GetOneChannelValue] usb E2\n");
+			//battery_log(BAT_LOG_CRTI,  "[PMIC_IMM_GetOneChannelValue] usb E2\n");
 			pmic_config_interface( (kal_uint32)(MT6332_CHR_CON22), 0x1, MT6332_PMIC_RG_AUXADC_USB_DET_MASK, MT6332_PMIC_RG_AUXADC_USB_DET_SHIFT);
 			pmic_config_interface( (kal_uint32)(MT6332_CHR_CON22), 0x0, MT6332_PMIC_RG_AUXADC_DCIN_DET_MASK, MT6332_PMIC_RG_AUXADC_DCIN_DET_SHIFT);
 		}
