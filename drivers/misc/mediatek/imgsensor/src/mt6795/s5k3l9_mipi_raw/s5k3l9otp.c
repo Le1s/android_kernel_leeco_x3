@@ -444,7 +444,7 @@ int get_3l9_dvt_id(void)
 		//(g_s5k3l9_otp_struct.wb_g_Gb == 0xA2)&&(g_s5k3l9_otp_struct.wb_g_B == 0x65))
 	else
 	{
-		CAM_CALDB("Samsung After DVT2 3L9  !!!!\n");	
+		//CAM_CALDB("Samsung After DVT2 3L9  !!!!\n");
 		return 2;
 	}
 	//else
