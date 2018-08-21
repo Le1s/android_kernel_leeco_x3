@@ -1148,13 +1148,12 @@ void bq2589x_dump_register(struct bq2589x* bq)
 
     battery_xlog_printk(BAT_LOG_CRTI,"[battery][bq2589x] ");
 
-#if 1
     for (i=0;i<21;i++)
     {
         bq2589x_read_byte(bq, &bq2589x_reg[i], i+0x00);
+		//battery_xlog_printk(BAT_LOG_CRTI,"[battery][0x%x]=0x%x \n", i, bq2589x_reg[i]);
     }
     battery_xlog_printk(BAT_LOG_CRTI,"[battery]\n");
-#endif
 
 }
 

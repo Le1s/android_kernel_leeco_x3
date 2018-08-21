@@ -939,11 +939,36 @@ static size_t print_time(u64 ts, char *buf)
 
 	rem_nsec = do_div(ts, 1000000000);
 
+#if defined(CONFIG_PRINTK_TIME_LOCAL)
+	struct timespec time;
+	struct tm tmresult;
+	time = __current_kernel_time();
+	time_to_tm(time.tv_sec,sys_tz.tz_minuteswest * 60* (-1),&tmresult);
+	if (!buf)
+		return snprintf(NULL, 0, "[%02d:%02d:%02d %02d:%02d:%02d.%06lu]",
+					(int)tmresult.tm_year%100,
+					tmresult.tm_mon+1,
+					tmresult.tm_mday,
+					tmresult.tm_hour,
+					tmresult.tm_min,
+					tmresult.tm_sec,
+					(unsigned long) time.tv_nsec/1000);
+
+	return sprintf(buf, "[%02d:%02d:%02d %02d:%02d:%02d.%06lu]",
+				(int)tmresult.tm_year%100,
+				tmresult.tm_mon+1,
+				tmresult.tm_mday,
+				tmresult.tm_hour,
+				tmresult.tm_min,
+				tmresult.tm_sec,
+				(unsigned long) time.tv_nsec/1000);
+#else
 	if (!buf)
 		return snprintf(NULL, 0, "[%5lu.000000]", (unsigned long)ts);
 
 	return sprintf(buf, "[%5lu.%06lu]",
 		       (unsigned long)ts, rem_nsec / 1000);
+#endif
 }
 
 static size_t print_prefix(const struct log *msg, bool syslog, char *buf)

@@ -1517,7 +1517,6 @@ static void mmc_detect(struct mmc_host *host)
 	}
 }
 
-#define LINUX_34_DEBUG   (1)
 static int _mmc_suspend(struct mmc_host *host, bool is_suspend)
 {
 	int err = 0;
@@ -1536,17 +1535,12 @@ static int _mmc_suspend(struct mmc_host *host, bool is_suspend)
 	if (mmc_can_poweroff_notify(host->card) &&
 		((host->caps2 & MMC_CAP2_FULL_PWR_CYCLE) || !is_suspend))
 		err = mmc_poweroff_notify(host->card, notify_type);
-#if (1 == LINUX_34_DEBUG)
 	else if (mmc_card_can_sleep(host) && mmc_card_keep_power(host)) {
 		err = mmc_card_sleep(host);
 		if (!err)
 			mmc_card_set_sleep(host->card);
 	}
 
-#else
-	else if (mmc_card_can_sleep(host) && mmc_card_keep_power(host))
-		err = mmc_card_sleep(host);
-#endif
 	else if (!mmc_host_is_spi(host))
 		err = mmc_deselect_cards(host);
 

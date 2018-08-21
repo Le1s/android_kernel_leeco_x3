@@ -14,6 +14,17 @@ config PRINTK_TIME
 	  The behavior is also controlled by the kernel command line
 	  parameter printk.time=1. See Documentation/kernel-parameters.txt
 
+config PRINTK_TIME_LOCAL
+	bool "Show time as per the system time"
+	depends on PRINTK_TIME
+	help
+	  Enabling this will print time as per the actual time of the system,
+	  and not the time elpased from the boot. This is useful while
+	  debugging issues whose root cause is not known and the time after
+	  boot is difficult to find. Using this, you can just check the
+	  actual time on your device and go through the log to get to
+	  that crash log easily.
+
 config DEFAULT_MESSAGE_LOGLEVEL
 	int "Default message log level (1-7)"
 	range 1 7

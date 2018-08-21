@@ -89,18 +89,18 @@ static int iReadCAM_CAL_16(u16 a_u2Addr, u8 * a_puBuff, u16 i2c_id)
     kal_uint16 get_byte=0;
     char puReadCmd[2] = {(char)(a_u2Addr >> 8), (char)(a_u2Addr & 0xFF) };
 
-    CAM_CALDB("iReadCAM_CAL_16 start !! \n");
+//    CAM_CALDB("iReadCAM_CAL_16 start !! \n");
 
     spin_lock(&g_CAM_3L9_CALLock); //for SMP
     g_pstI2Cclient->addr = i2c_id>>1;
 	g_pstI2Cclient->timing=100;
 	g_pstI2Cclient->addr = g_pstI2Cclient->addr & (I2C_MASK_FLAG);
     spin_unlock(&g_CAM_3L9_CALLock); // for SMP    
-    CAM_CALDB("iReadCAM_CAL_16 start22 !! \n");
+//    CAM_CALDB("iReadCAM_CAL_16 start22 !! \n");
 	
     i4RetValue = i2c_master_send(g_pstI2Cclient, puReadCmd, 2);
 
-    printk("%s, addr:%x, i2c_id:%x \n", "iReadCAM_CAL_16",  a_u2Addr, i2c_id) ;
+//    printk("%s, addr:%x, i2c_id:%x \n", "iReadCAM_CAL_16",  a_u2Addr, i2c_id) ;
 	
     if (i4RetValue != 2)
     {
@@ -113,7 +113,7 @@ static int iReadCAM_CAL_16(u16 a_u2Addr, u8 * a_puBuff, u16 i2c_id)
 
     i4RetValue = i2c_master_recv(g_pstI2Cclient, (char *)a_puBuff, 1);
 	
-	CAM_CALDB("[S5K3L9_CAL][iReadCAM_CAL] Read 0x%x=0x%x \n", a_u2Addr, a_puBuff[0]);
+//	CAM_CALDB("[S5K3L9_CAL][iReadCAM_CAL] Read 0x%x=0x%x \n", a_u2Addr, a_puBuff[0]);
     if (i4RetValue != 1)
     {
         CAM_CALDB("[S5K3L9_CAL] I2C read data failed!! \n");
@@ -144,7 +144,7 @@ u8 S5K3L9_ReadOtp(kal_uint16 address)
 	u8 readbuff;
 	int ret ;
 		
-	CAM_CALDB("[S5K3L9_CAL]ENTER address:0x%x \n ",address);
+//	CAM_CALDB("[S5K3L9_CAL]ENTER address:0x%x \n ",address);
 	ret= iReadCAM_CAL_16(address,&readbuff,0xA0);
 	return readbuff;
 }
