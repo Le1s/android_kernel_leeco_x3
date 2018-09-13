@@ -434,185 +434,6 @@ config TOUCHSCREEN_MTK
 	  To compile this driver as a module, choose M here: the
 	  module will be called MediaTek touch panel.
 
-
-config TOUCHSCREEN_MTK_GT9XX
-	bool "GT9XX for Mediatek package"
-	depends on TOUCHSCREEN_MTK
-	help
-	  Say Y here to enable MTK_GT9XX touchscreen support.
-
-	  If unsure, say N.
-
-	  To compile this driver as a module, choose M here: the
-	  module will be called MTK_GT9XX.
-
-config TOUCHSCREEN_MTK_FHD
-	bool "GT9XX for lenovo fhd aio driver config"
-	depends on TOUCHSCREEN_MTK
-	help
-	  Say Y here to enable MTK_FHD touchscreen support.
-
-	  If unsure, say N.
-
-	  To compile this driver as a module, choose M here: the
-	  module will be called MTK_FHD.
-
-config TOUCHSCREEN_MTK_HD
-	bool "GT9XX for lenovo hd aio driver config"
-	depends on TOUCHSCREEN_MTK
-	help
-	  Say Y here to enable MTK_HD touchscreen support.
-
-	  If unsure, say N.
-
-	  To compile this driver as a module, choose M here: the
-	  module will be called MTK_HD.
-
-config TOUCHSCREEN_MTK_GT9XX_AIO
-	bool "GT9XX for lenovo aio driver"
-	depends on TOUCHSCREEN_MTK
-	help
-	  Say Y here to enable MTK_GT9XX_AIO touchscreen support.
-
-	  If unsure, say N.
-
-	  To compile this driver as a module, choose M here: the
-	  module will be called MTK_GT9XX_AIO.
-
-config TOUCHSCREEN_MTK_GT9XX_HOTKNOT_SCP
-	bool "GT9XX with SCP for Mediatek package"
-	depends on TOUCHSCREEN_MTK
-	help
-	  Say Y here to enable MTK_GT9XX_HOTKNOT_SCP touchscreen support.
-
-	  If unsure, say N.
-
-	  To compile this driver as a module, choose M here: the
-	  module will be called MTK_GT9XX_HOTKNOT_SCP.
-
-config TOUCHSCREEN_MTK_GT9XX_HOTKNOT
-	bool "GT9XX HOTKNOT for Mediatek package"
-	depends on TOUCHSCREEN_MTK
-	help
-	  Say Y here to enable MTK_GT9XX_HOTKNOT touchscreen support.
-
-	  If unsure, say N.
-
-	  To compile this driver as a module, choose M here: the
-	  module will be called MTK_GT9XX_HOTKNOT.
-
-config TOUCHSCREEN_MTK_GT9XX_HOTKNOT_WEAR
-	bool "GT9XX HOTKNOT for Wearable Mediatek package"
-	depends on TOUCHSCREEN_MTK
-	help
-	  Say Y here to enable MTK_GT9XX_HOTKNOT_WEAR touchscreen support.
-
-	  If unsure, say N.
-
-	  To compile this driver as a module, choose M here: the
-	  module will be called MTK_GT9XX_HOTKNOT_WEAR.
-
-config TOUCHSCREEN_MTK_GT1151
-	bool "GT1151 for Mediatek package"
-	default n
-	help
-	  Say Y here to enable MTK_GT1151 touchscreen support.
-
-	  If unsure, say N.
-
-	  To compile this driver as a module, choose M here: the
-	  module will be called MTK_GT1151.
-
-config TOUCHSCREEN_MTK_GT910
-	bool "GT910 for Mediatek package"
-	default n
-	help
-	  Say Y here to enable MTK_GT910 touchscreen support.
-
-	  If unsure, say N.
-
-	  To compile this driver as a module, choose M here: the
-	  module will be called MTK_GT910.
-
-config TOUCHSCREEN_MTK_MAX1187X
-	bool "MAX1187X for Mediatek package"
-	depends on TOUCHSCREEN_MTK
-	help
-	  Say Y here to enable MTK_MAX1187X touchscreen support.
-
-	  If unsure, say N.
-
-	  To compile this driver as a module, choose M here: the
-	  module will be called MTK_MAX1187X.
-
-
-config TOUCHSCREEN_MTK_GT9XX_HOTKNOT_FPGA
-	bool "GT9XX HOTKNOT FPGA for Mediatek package"
-	depends on TOUCHSCREEN_MTK
-	help
-	  Say Y here to enable MTK_GT9XX_HOTKNOT_FPGA touchscreen support.
-
-	  If unsure, say N.
-
-	  To compile this driver as a module, choose M here: the
-	  module will be called MTK_GT9XX_HOTKNOT_FPGA.
-
-config TOUCHSCREEN_MTK_GT9XXTB_HOTKNOT
-	bool "GT9XXTB HOTKNOT for Mediatek package"
-	depends on TOUCHSCREEN_MTK
-	help
-	  Say Y here to enable MTK_GT9XXTB_HOTKNOT touchscreen support.
-
-	  If unsure, say N.
-
-	  To compile this driver as a module, choose M here: the
-	  module will be called MTK_GT9XXTB_HOTKNOT.
-
-config TOUCHSCREEN_MTK_GT818B_FPGA
-	bool "GT818B for Mediatek package"
-	default n
-	help
-	  Say Y here to enable MTK_GT818B_FPGA touchscreen support.
-
-	  If unsure, say N.
-
-	  To compile this driver as a module, choose M here: the
-	  module will be called MTK_GT818B_FPGA.
-
-config TOUCHSCREEN_S7020
-	bool "GT9XX for Mediatek package"
-	depends on TOUCHSCREEN_MTK
-	help
-	  Say Y here to enable S7020 touchscreen support.
-
-	  If unsure, say N.
-
-	  To compile this driver as a module, choose M here: the
-	  module will be called S7020.
-
-config TOUCHSCREEN_MTK_GT9XX_2
-	bool "GT9XX for Mediatek package"
-	depends on TOUCHSCREEN_MTK
-	help
-	  Say Y here to enable GT9XX_2 touchscreen support.
-
-	  If unsure, say N.
-
-	  To compile this driver as a module, choose M here: the
-	  module will be called MTK_GT9XX_2.
-
-# Touch panel
-config MTK_GT9XX
-	bool "GT9XX for Mediatek package"
-	default n
-	help
-	  Say Y here to enable MTK_GT9XX touchscreen support.
-
-	  If unsure, say N.
-
-	  To compile this driver as a module, choose M here: the
-	  module will be called MTK_GT9XX.
-
 config GT9XX_2
 	bool "GT9XX for Mediatek package"
 	default n
@@ -624,39 +445,6 @@ config GT9XX_2
 	  To compile this driver as a module, choose M here: the
 	  module will be called GT9XX_2.
 
-config MTK_GT911
-	bool "GT911 for Mediatek package"
-	default n
-	help
-	  Say Y here to enable MTK_GT911 touchscreen support.
-
-	  If unsure, say N.
-
-	  To compile this driver as a module, choose M here: the
-	  module will be called MTK_GT911.
-
-config MTK_GT911TB_HOTKNOT
-	bool "GT911 for Mediatek package"
-	default n
-	help
-	  Say Y here to enable MTK_GT911TB_HOTKNOT touchscreen support.
-
-	  If unsure, say N.
-
-	  To compile this driver as a module, choose M here: the
-	  module will be called MTK_GT911TB_HOTKNOT.
-
-config MTK_MMS244
-	bool "MMS244 for Mediatek package"
-	default n
-	help
-	  Say Y here to enable MTK_MMS244 touchscreen support.
-
-	  If unsure, say N.
-
-	  To compile this driver as a module, choose M here: the
-	  module will be called MTK_MMS244.
-
 config GT9XX_HOTKNOT_FLASHLESS
 	bool "GT9XX_HOTKNOT for Mediatek package"
 	default n
@@ -667,94 +455,6 @@ config GT9XX_HOTKNOT_FLASHLESS
 
 	  To compile this driver as a module, choose M here: the
 	  module will be called GT9XX_HOTKNOT_FLASHLESS.
-
-config MTK_FT5406
-	bool "FT5406 for Mediatek package"
-	default n
-	help
-	  Say Y here to enable MTK_FT5406 touchscreen support.
-
-	  If unsure, say N.
-
-	  To compile this driver as a module, choose M here: the
-	  module will be called MTK_FT5406.
-
-config MTK_FT5406_82
-	bool "FT5406_82 for Mediatek package"
-	default n
-	help
-	  Say Y here to enable MTK_FT5406_82 touchscreen support.
-
-	  If unsure, say N.
-
-	  To compile this driver as a module, choose M here: the
-	  module will be called MTK_FT5406_82.
-
-config MTK_FT5206
-	bool "FT5206 for Mediatek package"
-	default n
-	help
-	  Say Y here to enable MTK_FT5206 touchscreen support.
-
-	  If unsure, say N.
-
-	  To compile this driver as a module, choose M here: the
-	  module will be called MTK_FT5206.
-
-config MTK_FT5X0X
-	bool "FT5X0X for Mediatek package"
-	default n
-	help
-	  Say Y here to enable MTK_FT5X0X touchscreen support.
-
-	  If unsure, say N.
-
-	  To compile this driver as a module, choose M here: the
-	  module will be called MTK_FT5X0X.
-
-config MTK_MMS134
-	bool "MMS134 for Mediatek package"
-	default n
-	help
-	  Say Y here to enable MTK_MMS134 touchscreen support.
-
-	  If unsure, say N.
-
-	  To compile this driver as a module, choose M here: the
-	  module will be called MTK_MMS134.
-
-config MTK_MMS128
-	bool "MMS128 for Mediatek package"
-	default n
-	help
-	  Say Y here to enable MTK_MMS128 touchscreen support.
-
-	  If unsure, say N.
-
-	  To compile this driver as a module, choose M here: the
-	  module will be called MTK_MMS128.
-
-config MTK_S7020
-	bool "MTK_S7020"
-	default n
-	help
-	  Say Y here to enable MTK_S7020 touchscreen support.
-
-	  If unsure, say N.
-
-	  To compile this driver as a module, choose M here: the
-	  module will be called MTK_S7020.
-
-config MTK_MIT200
-	bool "MIT200 for Mediatek package"
-	default n
-	help
-	  Say Y here to enable MTK_MIT200 touchscreen support.
-
-	  If unsure, say N.
-
-	  To compile this driver as a module, choose M here: the
-	  module will be called MTK_MIT200.
 
 config TOUCHSCREEN_HP600
 	tristate "HP Jornada 6xx touchscreen"
@@ -970,16 +670,6 @@ config TOUCHSCREEN_WM9713
 
 	  To compile this driver as a module, choose M here: the
 	  module will be called WM9713
-
-config TOUCHSCREEN_MTK_FTS2A052
-	bool "FTS2A052 for Mediatek package"
-	default n
-	help
-	  Say Y here if you have an FTS2A052 Touch controller.
-	  If unsure, say N.
-
-	  To compile this driver as a module, choose M here: the
-	  module will be called FTS2A052.
 
 config TOUCHSCREEN_WM97XX_ATMEL
 	tristate "WM97xx Atmel accelerated touch"
@@ -1248,7 +938,6 @@ config TOUCHSCREEN_USB_NEXIO
 	  To compile this driver as a module, choose M here: the
 	  module will be called NEXIO.
 
-
 config TOUCHSCREEN_USB_EASYTOUCH
 	default y
 	bool "EasyTouch USB Touch controller device support" if EMBEDDED
@@ -1390,7 +1079,6 @@ config TOUCHSCREEN_SYNAPTICS_S3508
 	help
 	  This enables support for Synaptics S3508 over I2C based touchscreens.
 
-
 config MTK_SYNAPTICS_3320
 	tristate "Synaptics touchscreen"
 	depends on I2C
@@ -1426,6 +1114,5 @@ config MTK_ATMEL_MXT
 
 	  To compile this driver as a module, choose M here: the
 	  module will be called Synaptics.
-
 
 endif
