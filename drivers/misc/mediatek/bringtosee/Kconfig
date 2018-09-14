@@ -1,5 +1,0 @@
-
-config CUSTOM_KERNEL_BRINGTOSEE_SENSOR
-	bool "CUSTOM_KERNEL_BRINGTOSEE_SENSOR"
-	help
-	  Kernel space bring to see sensor driver.
