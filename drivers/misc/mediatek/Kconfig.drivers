@@ -1017,11 +1017,6 @@ config SINGLE_PANEL_OUTPUT
 	help
 	  Disable panel output when HDMI connected.
 
-config CUSTOM_KERNEL_BAROMETER
-	bool "CUSTOM_KERNEL_BAROMETER"
-	help
-	  Pressure sensor driver to detect pressure
-
 config MTK_INTERNAL_MHL_SUPPORT
 	bool "MTK_INTERNAL_MHL_SUPPORT"
 	depends on MTK_HDMI_SUPPORT
