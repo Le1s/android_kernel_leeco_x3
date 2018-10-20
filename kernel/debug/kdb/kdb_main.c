@@ -1312,7 +1312,7 @@ do_full_getstr:
 	KDB_DEBUG_STATE("kdb_local 9", diag);
 	get_cpu_var(kdb_in_use) = 0;
 	put_cpu_var(kdb_in_use);
-	
+
 	return diag;
 }
 

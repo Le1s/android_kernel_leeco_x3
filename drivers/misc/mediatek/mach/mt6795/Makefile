@@ -33,7 +33,6 @@ obj-y += mt_hotplug.o
 #obj-y += mt_hotplug_mechanism.o
 obj-y += mt_hotplug_strategy_main.o mt_hotplug_strategy_core.o mt_hotplug_strategy_procfs.o mt_hotplug_strategy_cpu.o mt_hotplug_strategy_api.o mt_hotplug_strategy_algo.o
 #obj-y += eint.o
-obj-$(CONFIG_MT65XX_TRACER) += pmu_v7.o mon_interface.o mt_mon.o mt_emi_bm.o
 ccflags-y += -I$(srctree)/drivers/misc/mediatek/cmdq
 obj-y += camera_isp.o
 obj-y += camera_sysram.o

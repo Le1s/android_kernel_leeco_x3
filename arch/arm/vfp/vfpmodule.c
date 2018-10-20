@@ -79,9 +79,7 @@ static bool vfp_state_in_hw(unsigned int cpu, struct thread_info *thread)
 static void vfp_force_reload(unsigned int cpu, struct thread_info *thread)
 {
 	if (vfp_state_in_hw(cpu, thread)) {
-#ifndef CONFIG_VFP_OPT
 		fmxr(FPEXC, fmrx(FPEXC) & ~FPEXC_EN);
-#endif
 		vfp_current_hw_state[cpu] = NULL;
 	}
 #ifdef CONFIG_SMP
@@ -108,9 +106,7 @@ static void vfp_thread_flush(struct thread_info *thread)
 	cpu = get_cpu();
 	if (vfp_current_hw_state[cpu] == vfp)
 		vfp_current_hw_state[cpu] = NULL;
-#ifndef CONFIG_VFP_OPT
 	fmxr(FPEXC, fmrx(FPEXC) & ~FPEXC_EN);
-#endif
 	put_cpu();
 
 	memset(vfp, 0, sizeof(union vfp_state));
@@ -171,15 +167,14 @@ static int vfp_notifier(struct notifier_block *self, unsigned long cmd, void *v)
 {
 	struct thread_info *thread = v;
 	u32 fpexc;
-#ifndef CONFIG_VFP_OPT
 #ifdef CONFIG_SMP
 	unsigned int cpu;
 #endif
-#endif
+
 	switch (cmd) {
 	case THREAD_NOTIFY_SWITCH:
 		fpexc = fmrx(FPEXC);
-#ifndef CONFIG_VFP_OPT
+
 #ifdef CONFIG_SMP
 		cpu = thread->cpu;
 
@@ -197,7 +192,6 @@ static int vfp_notifier(struct notifier_block *self, unsigned long cmd, void *v)
 		 * old state.
 		 */
 		fmxr(FPEXC, fpexc & ~FPEXC_EN);
-#endif
 		break;
 
 	case THREAD_NOTIFY_FLUSH:
@@ -462,17 +456,13 @@ static int vfp_pm_suspend(void)
 		pr_debug("%s: saving vfp state\n", __func__);
 		vfp_save_state(&ti->vfpstate, fpexc);
 
-#ifndef CONFIG_VFP_OPT
 		/* disable, just in case */
 		fmxr(FPEXC, fmrx(FPEXC) & ~FPEXC_EN);
-#endif
 	} else if (vfp_current_hw_state[ti->cpu]) {
 #ifndef CONFIG_SMP
 		fmxr(FPEXC, fpexc | FPEXC_EN);
 		vfp_save_state(vfp_current_hw_state[ti->cpu], fpexc);
-#ifndef CONFIG_VFP_OPT
 		fmxr(FPEXC, fpexc);
-#endif
 #endif
 	}
 
@@ -484,38 +474,11 @@ static int vfp_pm_suspend(void)
 
 static void vfp_pm_resume(void)
 {
-#ifdef CONFIG_VFP_OPT
-        struct thread_info *ti = current_thread_info();
-        u32 *vfpstate = (u32 *)(&ti->vfpstate);
-        u32 temp = 0;
-        u32 fpexc = 0, fpscr = 0, fpinst = 0, fpinst2 = 0;
-#endif
-
 	/* ensure we have access to the vfp */
 	vfp_enable(NULL);
 
-#ifndef CONFIG_VFP_OPT
 	/* and disable it to ensure the next usage restores the state */
 	fmxr(FPEXC, fmrx(FPEXC) & ~FPEXC_EN);
-#else
-        /* restore VFP registers and state */
-	asm volatile (
-		"LDC	p11, cr0, [%0],#32*4\n"
-		//"VFPFMRX \tmp, MVFR0\n"
-		"MRC	p10, 7, %1, cr7, cr0, 0\n"
-		"and	%1, %1, %6\n"
-		"cmp	%1, #2\n"
-		"ldceql	p11, cr0, [%0],#32*4\n"
-		"addne	%0, %0, #32*4\n"
-		"ldmia	%0, {%2, %3, %4, %5}\n"
-		//"VFPFMXR      FPSCR, %3\n"
-		"MCR	p10, 7, %3, cr1, cr0, 0"
-		: "+r"(vfpstate), "+r"(temp), "+r"(fpexc), "+r"(fpscr), "+r"(fpinst), "+r"(fpinst2)
-		: "r" (MVFR0_A_SIMD_MASK)
-		: "cc"
-	);
-#endif
-
 }
 
 static int vfp_cpu_pm_notifier(struct notifier_block *self, unsigned long cmd,
@@ -562,9 +525,7 @@ void vfp_sync_hwstate(struct thread_info *thread)
 		 */
 		fmxr(FPEXC, fpexc | FPEXC_EN);
 		vfp_save_state(&thread->vfpstate, fpexc | FPEXC_EN);
-#ifndef CONFIG_VFP_OPT
 		fmxr(FPEXC, fpexc);
-#endif
 	}
 
 	put_cpu();
@@ -690,7 +651,6 @@ static int vfp_hotplug(struct notifier_block *b, unsigned long action,
 
 #ifdef CONFIG_KERNEL_MODE_NEON
 
-
 /*
  * Kernel-side NEON support functions
  */
@@ -708,10 +668,8 @@ void kernel_neon_begin(void)
 	BUG_ON(in_interrupt());
 	cpu = get_cpu();
 
-#ifndef CONFIG_VFP_OPT
 	fpexc = fmrx(FPEXC) | FPEXC_EN;
 	fmxr(FPEXC, fpexc);
-#endif
 
 	/*
 	 * Save the userland NEON/VFP state. Under UP,
@@ -729,10 +687,8 @@ EXPORT_SYMBOL(kernel_neon_begin);
 
 void kernel_neon_end(void)
 {
-#ifndef CONFIG_VFP_OPT
 	/* Disable the NEON/VFP unit. */
 	fmxr(FPEXC, fmrx(FPEXC) & ~FPEXC_EN);
-#endif
 	put_cpu();
 }
 EXPORT_SYMBOL(kernel_neon_end);

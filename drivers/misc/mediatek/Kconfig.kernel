@@ -25,12 +25,6 @@ config MTK_KERNEL_MARKER
 	  Mark the user-defined points, such as systrace events in
 	  user space, to visualize via systrace html files
 
-config MT65XX_TRACER
-	bool "MT65XX Tracer"
-	select CONTEXT_SWITCH_TRACER
-	select GENERIC_TRACER
-	default n
-
 menu "MET"
 
 config MTK_MET
@@ -125,7 +119,7 @@ config ANDROID_VMEM
 	default y
 
 config MTK_RAM_CONSOLE
-	bool "mt ram console" 
+	bool "mt ram console"
 
 config MTK_RAM_CONSOLE_USING_SRAM
 	bool "Using SRAM as ram console storage"
@@ -143,7 +137,7 @@ config MTK_RAM_CONSOLE_SIZE
 config MTK_RAM_CONSOLE_ADDR
 	hex "MTK RAM console buffer size"
 	default 0
-	depends on MTK_RAM_CONSOLE   
+	depends on MTK_RAM_CONSOLE
 
 config MTK_RAM_CONSOLE_DRAM_SIZE
 	hex "MTK RAM console dram address"
@@ -153,7 +147,7 @@ config MTK_RAM_CONSOLE_DRAM_SIZE
 config MTK_RAM_CONSOLE_DRAM_ADDR
 	hex "MTK RAM console dram size"
 	default 0
-	depends on MTK_RAM_CONSOLE   
+	depends on MTK_RAM_CONSOLE
 
 config PREEMPT_MONITOR
 	bool "mt preempt monitor"
@@ -186,13 +180,13 @@ config MT_LOCK_DEBUG
 
 config MT_DEBUG_MUTEXES
 	bool "show mutex owner info"
-	depends on DEBUG_MUTEXES 
+	depends on DEBUG_MUTEXES
 	default n
 
-config PRINTK_PROCESS_INFO 
+config PRINTK_PROCESS_INFO
 	bool "Prefix pid/process_name to each kernel log"
 	default n
-	
+
 config MT_PRINTK_UART_CONSOLE
 	bool "MTK printk UART controller"
 	default n
@@ -366,7 +360,7 @@ config MTK_TABLET_HARDWARE
 	bool "MTK tablet machine name"
 	default n
 	help
-	  MTM tablet machine name 
+	  MTM tablet machine name
 
 config GATOR_DRIVER
 	tristate "DS-5 profiling tool kernel driver"
@@ -398,5 +392,3 @@ config MTK_LEGACY
 	help
 	  This is an option for MTK legacy driver that using old API
 	  It will be deprecated after all drivers changed to new structure
-
-

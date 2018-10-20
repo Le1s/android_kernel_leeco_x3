@@ -222,9 +222,9 @@ int __ref register_cpu_notifier(struct notifier_block *nb)
  #ifdef CONFIG_KALLSYMS
 	char namebuf[128] = {0};
 	const char *symname;
-	
+
 	symname = kallsyms_lookup((unsigned long)nb->notifier_call, NULL, NULL, NULL, namebuf);
-	if (symname) 
+	if (symname)
 		printk("[cpu_ntf] <%02d>%08lx (%s)\n", index++, (unsigned long)nb->notifier_call, symname);
 	else
 		printk("[cpu_ntf] <%02d>%08lx\n", index++, (unsigned long)nb->notifier_call);

@@ -48,7 +48,6 @@
 #include <linux/of_address.h>
 #endif
 
-
 #include <linux/kernel.h>
 #include <linux/module.h>
 #include <linux/init.h>
@@ -102,40 +101,40 @@
 
 enum Auddrv_I2S_NUMBER
 {
-    Auddrv_I2S0_Setting=0,
-    Auddrv_I2S1_Setting,
-    Auddrv_I2S2_Setting,
-    Auddrv_I2S3_Setting,
-    Auddrv_I2S_Num,
+	Auddrv_I2S0_Setting=0,
+	Auddrv_I2S1_Setting,
+	Auddrv_I2S2_Setting,
+	Auddrv_I2S3_Setting,
+	Auddrv_I2S_Num,
 };
 
 
 enum Auddrv_I2S_Setting
 {
-    Auddrv_I2S_Setting_ws =0,
-    Auddrv_I2S_Setting_bck,
-    Auddrv_I2S_Setting_D00,
-    Auddrv_I2S_Setting_D01,
-    Auddrv_I2S_Setting_I00,
-    Auddrv_I2S_Setting_I01,
-    Auddrv_I2S_Setting_Mclk,
-    Auddrv_I2S_Attribute_Num
+	Auddrv_I2S_Setting_ws =0,
+	Auddrv_I2S_Setting_bck,
+	Auddrv_I2S_Setting_D00,
+	Auddrv_I2S_Setting_D01,
+	Auddrv_I2S_Setting_I00,
+	Auddrv_I2S_Setting_I01,
+	Auddrv_I2S_Setting_Mclk,
+	Auddrv_I2S_Attribute_Num
 };
 
 
 enum Auddrv_CLK_Setting
 {
-    Auddrv_CLK_Mosi  = 0 ,
-    Auddrv_DataIn1_Mosi  ,
-    Auddrv_DataOut1_Mosi ,
-    Auddrv_Attribute_num ,
+	Auddrv_CLK_Mosi  = 0 ,
+	Auddrv_DataIn1_Mosi  ,
+	Auddrv_DataOut1_Mosi ,
+	Auddrv_Attribute_num ,
 };
 
 
 typedef struct
 {
-    unsigned int  Gpio_Number;
-    unsigned int  Gpio_Mode;
+	unsigned int  Gpio_Number;
+	unsigned int  Gpio_Mode;
 } AUDDRV_I2S_ATTRIBUTE;
 
 void Auddrv_Devtree_Init(void);

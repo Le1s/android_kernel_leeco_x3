@@ -220,7 +220,7 @@ static ssize_t ashmem_read(struct file *file, char __user *buf,
 	struct ashmem_area *asma = file->private_data;
 	int ret = 0;
 
-        mutex_lock(&ashmem_mutex);
+	mutex_lock(&ashmem_mutex);
 
 	/* If size is not set, or set to 0, always return EOF. */
 	if (asma->size == 0)
@@ -363,7 +363,6 @@ static int ashmem_shrink(struct shrinker *s, struct shrink_control *sc)
 	if (!sc->nr_to_scan)
 		return lru_count;
 
-	//To avoid deadlock when memory is shortage
 	if (!mutex_trylock(&ashmem_mutex))
 		return -1;
 

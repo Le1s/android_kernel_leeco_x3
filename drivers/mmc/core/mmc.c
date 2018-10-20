@@ -519,13 +519,13 @@ static int mmc_read_ext_csd(struct mmc_card *card, u8 *ext_csd)
 	else
 		card->erased_byte = 0x0;
 
-        /* for samsung emmc4.41 plus spec */
-        if ((card->cid.manfid == VENDOR_SAMSUNG) &&
-            (card->ext_csd.rev == 5)             &&
-            (1 == (0x1 & ext_csd[EXT_CSD_SAMSUNG_FEATURE]))){
-            printk("set to support discard\n");
-            card->ext_csd.feature_support |= MMC_DISCARD_FEATURE;
-        }
+	/* for samsung emmc4.41 plus spec */
+	if ((card->cid.manfid == VENDOR_SAMSUNG) &&
+	   (card->ext_csd.rev == 5)             &&
+	   (1 == (0x1 & ext_csd[EXT_CSD_SAMSUNG_FEATURE]))){
+		printk("set to support discard\n");
+		card->ext_csd.feature_support |= MMC_DISCARD_FEATURE;
+	}
 
 	/* eMMC v4.5 or later */
 	if (card->ext_csd.rev >= 6) {
@@ -805,7 +805,7 @@ static int mmc_select_hs400(struct mmc_card *card)
 	/* switch to DDR50 mode */
 	err = mmc_switch(card, EXT_CSD_CMD_SET_NORMAL,
 				 EXT_CSD_BUS_WIDTH,
-                 EXT_CSD_DDR_BUS_WIDTH_8,
+				 EXT_CSD_DDR_BUS_WIDTH_8,
 				 card->ext_csd.generic_cmd6_time);
 	if (err)
 		goto err;
@@ -856,13 +856,13 @@ static int mmc_select_hs200(struct mmc_card *card)
 #ifdef CONFIG_EMMC_50_FEATURE
 	/* switch to High speed mode  */
 	if (card->ext_csd.card_type & EXT_CSD_CARD_TYPE_HS400_1_2V ||
-        card->ext_csd.card_type & EXT_CSD_CARD_TYPE_HS400_1_8V){
-	    err = mmc_switch(card, EXT_CSD_CMD_SET_NORMAL,
+		card->ext_csd.card_type & EXT_CSD_CARD_TYPE_HS400_1_8V){
+		err = mmc_switch(card, EXT_CSD_CMD_SET_NORMAL,
 				 EXT_CSD_HS_TIMING, 1, 0);
 
-	    if(err)
-		     goto err;
-    }
+		if(err)
+			goto err;
+	}
 #endif
 	idx = (host->caps & MMC_CAP_8_BIT_DATA) ? 1 : 0;
 
@@ -903,7 +903,6 @@ static int mmc_select_hs200(struct mmc_card *card)
 		err = mmc_switch(card, EXT_CSD_CMD_SET_NORMAL,
 				 EXT_CSD_HS_TIMING, 2, 0);
 err:
-	printk("[%s]: switch to HS200 speed mode, err=%d\n", __func__, err); 
 	return err;
 }
 
@@ -1116,7 +1115,7 @@ static int mmc_init_card(struct mmc_host *host, u32 ocr,
 		err = 0;
 #ifdef CONFIG_EMMC_50_FEATURE
 		if (card->ext_csd.hs_max_dtr >200000000 &&
-		    host->caps2 & MMC_CAP2_HS400)
+			host->caps2 & MMC_CAP2_HS400)
 			err = mmc_select_hs400(card); 
 		else
 #endif
@@ -1138,7 +1137,7 @@ static int mmc_init_card(struct mmc_host *host, u32 ocr,
 		} else {
 #ifdef CONFIG_EMMC_50_FEATURE
 			if (card->ext_csd.hs_max_dtr >200000000 &&
-			    host->caps2 & MMC_CAP2_HS400) {
+				host->caps2 & MMC_CAP2_HS400) {
 				mmc_card_set_hs400(card); 
 				mmc_set_timing(card->host, MMC_TIMING_MMC_HS400); 
 			} else
@@ -1162,7 +1161,7 @@ static int mmc_init_card(struct mmc_host *host, u32 ocr,
 	max_dtr = (unsigned int)-1;
 	if (mmc_card_highspeed(card) || 
 #ifdef CONFIG_EMMC_50_FEATURE
-	    mmc_card_hs400(card) || 
+		mmc_card_hs400(card) || 
 #endif
 	    mmc_card_hs200(card)) {
 		if (max_dtr > card->ext_csd.hs_max_dtr)
@@ -1200,7 +1199,6 @@ static int mmc_init_card(struct mmc_host *host, u32 ocr,
 		err = mmc_select_powerclass(card, EXT_CSD_DDR_BUS_WIDTH_8, ext_csd); 
 		if (err)
 			pr_warning("%s: power class selection to 8bit DDR failed\n", mmc_hostname(card->host));
-        
 	}
 #endif
 	/*
@@ -1248,7 +1246,7 @@ static int mmc_init_card(struct mmc_host *host, u32 ocr,
 	 */
 	if (!mmc_card_hs200(card) &&
 #ifdef CONFIG_EMMC_50_FEATURE
-        !mmc_card_hs400(card) &&
+		!mmc_card_hs400(card) &&
 #endif
 	    (card->csd.mmca_vsn >= CSD_SPEC_VER_4) &&
 	    (host->caps & (MMC_CAP_4_BIT_DATA | MMC_CAP_8_BIT_DATA))) {
@@ -1393,6 +1391,7 @@ static int mmc_init_card(struct mmc_host *host, u32 ocr,
 		}
 	}
 #endif
+
 	/*
 	 * The mandatory minimum values are defined for packed command.
 	 * read: 5, write: 3

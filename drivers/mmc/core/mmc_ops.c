@@ -446,7 +446,7 @@ int __mmc_switch(struct mmc_card *card, u8 set, u8 index, u8 value,
 		err = mmc_send_status(card, &status);
 		if (err)
 			return err;
-        //===ss6, bug, cmd6's status will be missed if set the WAIT_WHILE_BUSY flags 
+        //===ss6, bug, cmd6's status will be missed if set the WAIT_WHILE_BUSY flags
 		//if (card->host->caps & MMC_CAP_WAIT_WHILE_BUSY)
 			//break;
         //===

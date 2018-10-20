@@ -46,7 +46,7 @@ static int nf_ct_tcp_loose __read_mostly = 1;
 static int nf_ct_tcp_max_retrans __read_mostly = 3;
 
 /*if it is set to one,we disable check tcp ack or sequence number is in window*/
-static int nf_ct_tcp_no_window_check __read_mostly = 0;	
+static int nf_ct_tcp_no_window_check __read_mostly = 0;
   /* FIXME: Examine ipfilter's timeouts and conntrack transitions more
      closely.  They're more complex. --RR */
 
@@ -530,10 +530,10 @@ static bool tcp_in_window(const struct nf_conn *ct,
 	s16 receiver_offset;
 	bool res;
 
-    if( nf_ct_tcp_no_window_check )
-    {
-        return true;
-    }
+	if( nf_ct_tcp_no_window_check ){
+		return true;
+	}
+
 	/*
 	 * Get the required data from the packet.
 	 */

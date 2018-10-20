@@ -997,12 +997,12 @@ int __hrtimer_start_range_ns(struct hrtimer *timer, ktime_t tim,
 	struct hrtimer_clock_base *base, *new_base;
 	unsigned long flags;
 	int ret, leftmost;
-    /*add MTK debug log for ALPS01804694*/
-    if(timer->function == NULL) {
+	/*add MTK debug log for ALPS01804694*/
+	if(timer->function == NULL) {
 		pr_alert("add hrtimer but do nothing");
 		dump_stack();
-    }
-	
+	}
+
 	base = lock_hrtimer_base(timer, &flags);
 
 	/* Remove an active timer from the queue: */
@@ -1273,7 +1273,7 @@ static void dump_hrtimer_callinfo(struct hrtimer *timer)
   pr_err("timer info2: state/%lx, func/%s\n",
   timer->state, symname);
   }
- 
+
   #ifdef CONFIG_TIMER_STATS
   if (lookup_symbol_name((unsigned long)(timer->start_site),
   symname) < 0) {

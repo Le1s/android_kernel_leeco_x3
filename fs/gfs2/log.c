@@ -802,9 +802,7 @@ int gfs2_logd(void *data)
 	unsigned long t = 1;
 	DEFINE_WAIT(wait);
 
-	set_freezable();
-
-	while (!kthread_freezable_should_stop(NULL)) {
+	while (!kthread_should_stop()) {
 
 		if (gfs2_jrnl_flush_reqd(sdp) || t == 0) {
 			gfs2_ail1_empty(sdp);
@@ -830,11 +828,11 @@ int gfs2_logd(void *data)
 					TASK_INTERRUPTIBLE);
 			if (!gfs2_ail_flush_reqd(sdp) &&
 			    !gfs2_jrnl_flush_reqd(sdp) &&
-			    !kthread_freezable_should_stop(NULL))
+			    !kthread_should_stop())
 				t = schedule_timeout(t);
 		} while(t && !gfs2_ail_flush_reqd(sdp) &&
 			!gfs2_jrnl_flush_reqd(sdp) &&
-			!kthread_freezable_should_stop(NULL));
+			!kthread_should_stop());
 		finish_wait(&sdp->sd_logd_waitq, &wait);
 	}
 

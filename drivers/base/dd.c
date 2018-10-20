@@ -25,7 +25,6 @@
 #include <linux/async.h>
 #include <linux/pm_runtime.h>
 #include <linux/pinctrl/devinfo.h>
-#include <linux/time_log.h>
 
 #include "base.h"
 #include "power/power.h"
@@ -300,15 +299,11 @@ static int really_probe(struct device *dev, struct device_driver *drv)
 	}
 
 	if (dev->bus->probe) {
-		TIME_LOG_START();
 		ret = dev->bus->probe(dev);
-		 TIME_LOG_END("[probe] drv:%s dev:%s\n", drv->name, dev->init_name);
 		if (ret)
 			goto probe_failed;
 	} else if (drv->probe) {
-		TIME_LOG_START();
 		ret = drv->probe(dev);
-		TIME_LOG_END("[probe] drv:%s dev:%s\n", drv->name, dev->init_name);
 		if (ret)
 			goto probe_failed;
 	}

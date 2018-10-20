@@ -859,7 +859,7 @@ int icmp_rcv(struct sk_buff *skb)
 	struct net *net = dev_net(rt->dst.dev);
 	/*mtk_net: save ping reply sk*/
 	struct sock *ping_sk = NULL;
-	
+
 	if (!xfrm4_policy_check(NULL, XFRM_POLICY_IN, skb)) {
 		struct sec_path *sp = skb_sec_path(skb);
 		int nh;
@@ -934,11 +934,11 @@ int icmp_rcv(struct sk_buff *skb)
 	}
 
 	icmp_pointers[icmph->type].handler(skb);
-	
+
 	if(icmph->type == ICMP_ECHOREPLY && skb->sk != NULL ){
-	    ping_sk = skb->sk;
- 	}
- 	
+		ping_sk = skb->sk;
+	}
+
 drop:
 	if(ping_sk){
 	    kfree_skb(skb);

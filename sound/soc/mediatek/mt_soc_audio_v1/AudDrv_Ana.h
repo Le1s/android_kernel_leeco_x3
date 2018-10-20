@@ -425,14 +425,6 @@
 #define MT6332_AUXADC_CON46       ((UINT32)(MT6332_PMIC_REG_BASE+0x08C4))
 #define MT6332_AUXADC_CON47       ((UINT32)(MT6332_PMIC_REG_BASE+0x08C6))
 
-
-#if 1
-//register number
-
-#else
-#include <mach/upmu_hw.h>
-#endif
-
 void Ana_Set_Reg(uint32 offset, uint32 value, uint32 mask);
 uint32  Ana_Get_Reg(uint32 offset);
 
@@ -440,5 +432,3 @@ uint32  Ana_Get_Reg(uint32 offset);
 void Ana_Log_Print(void);
 
 #endif
-
-

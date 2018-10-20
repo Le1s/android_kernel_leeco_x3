@@ -303,9 +303,6 @@ done:
 
 int rtc_read_alarm(struct rtc_device *rtc, struct rtc_wkalrm *alarm)
 {
-#ifdef RTC_LEGACY_ALARM_IMPL
-	return __rtc_read_alarm(rtc, alarm);
-#else	
 	int err;
 
 	err = mutex_lock_interruptible(&rtc->ops_lock);
@@ -323,16 +320,11 @@ int rtc_read_alarm(struct rtc_device *rtc, struct rtc_wkalrm *alarm)
 	mutex_unlock(&rtc->ops_lock);
 
 	return err;
-#endif
 }
 EXPORT_SYMBOL_GPL(rtc_read_alarm);
 
 static int __rtc_set_alarm(struct rtc_device *rtc, struct rtc_wkalrm *alarm)
 {
-#ifdef RTC_LEGACY_ALARM_IMPL
-	WARN(1, "__rtc_set_alarm() is not supported!!\n");
-	return -EPERM;
-#else	
 	struct rtc_time tm;
 	long now, scheduled;
 	int err;
@@ -362,7 +354,6 @@ static int __rtc_set_alarm(struct rtc_device *rtc, struct rtc_wkalrm *alarm)
 		err = rtc->ops->set_alarm(rtc->dev.parent, alarm);
 
 	return err;
-#endif
 }
 
 int rtc_set_alarm(struct rtc_device *rtc, struct rtc_wkalrm *alarm)
@@ -376,15 +367,6 @@ int rtc_set_alarm(struct rtc_device *rtc, struct rtc_wkalrm *alarm)
 	err = mutex_lock_interruptible(&rtc->ops_lock);
 	if (err)
 		return err;
-#ifdef RTC_LEGACY_ALARM_IMPL
-	if (!rtc->ops)
-		err = -ENODEV;
-	else if (!rtc->ops->set_alarm)
-		err = -EINVAL;
-	else
-		err = rtc->ops->set_alarm(rtc->dev.parent, alarm);
-#else
-
 	if (rtc->aie_timer.enabled) {
 		rtc_timer_remove(rtc, &rtc->aie_timer);
 	}
@@ -393,7 +375,6 @@ int rtc_set_alarm(struct rtc_device *rtc, struct rtc_wkalrm *alarm)
 	if (alarm->enabled) {
 		err = rtc_timer_enqueue(rtc, &rtc->aie_timer);
 	}
-#endif
 	mutex_unlock(&rtc->ops_lock);
 	return err;
 }
@@ -410,25 +391,22 @@ int rtc_set_alarm_poweron(struct rtc_device *rtc, struct rtc_wkalrm *alarm)
 	err = mutex_lock_interruptible(&rtc->ops_lock);
 	if (err)
 		return err;
-		
+
 	if (!rtc->ops)
 		err = -ENODEV;
 	else if (!rtc->ops->set_alarm)
 		err = -EINVAL;
 	else
 		err = rtc->ops->set_alarm(rtc->dev.parent, alarm);
-	
+
 	mutex_unlock(&rtc->ops_lock);
-	return err;	
+	return err;
 }
 EXPORT_SYMBOL_GPL(rtc_set_alarm_poweron);
 
 /* Called once per device from rtc_device_register */
 int rtc_initialize_alarm(struct rtc_device *rtc, struct rtc_wkalrm *alarm)
 {
-#ifdef RTC_LEGACY_ALARM_IMPL
-			return 0;
-#else
 	int err;
 	struct rtc_time now;
 
@@ -456,7 +434,6 @@ int rtc_initialize_alarm(struct rtc_device *rtc, struct rtc_wkalrm *alarm)
 	}
 	mutex_unlock(&rtc->ops_lock);
 	return err;
-#endif
 }
 EXPORT_SYMBOL_GPL(rtc_initialize_alarm);
 

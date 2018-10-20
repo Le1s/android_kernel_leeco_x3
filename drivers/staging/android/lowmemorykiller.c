@@ -72,7 +72,6 @@ static DEFINE_SPINLOCK(lowmem_shrink_lock);
 #include "trace/lowmemorykiller.h"
 
 static uint32_t lowmem_debug_level = 1;
-
 static short lowmem_adj[9] = {
 	0,
 	1,
@@ -139,9 +138,6 @@ static int lowmem_shrink(struct shrinker *s, struct shrink_control *sc)
 	int print_extra_info = 0;
 	static unsigned long lowmem_print_extra_info_timeout;
 
-#ifdef CONFIG_MTK_GMO_RAM_OPTIMIZE
-	int other_anon = global_page_state(NR_INACTIVE_ANON) - global_page_state(NR_ACTIVE_ANON);
-#endif
 	/*
 	* If we already have a death outstanding, then
 	* bail out right away; indicating to vmscan
@@ -213,13 +209,6 @@ static int lowmem_shrink(struct shrinker *s, struct shrink_control *sc)
 			break;
 		}
 	}
-#ifdef CONFIG_MTK_GMO_RAM_OPTIMIZE /* Need removal */
-	if (min_score_adj < 9 && other_anon > 70 * 256) {
-		/* if other_anon > 70MB, don't kill adj <= 8 */
-		min_score_adj = 9;
-	}
-#endif
-
 	if (sc->nr_to_scan > 0)
 		lowmem_print(3, "lowmem_shrink %lu, %x, ofree %d %d, ma %hd\n",
 				sc->nr_to_scan, sc->gfp_mask, other_free,
@@ -315,28 +304,12 @@ static int lowmem_shrink(struct shrinker *s, struct shrink_control *sc)
 			    tasksize <= selected_tasksize)
 				continue;
 		}
-#ifdef CONFIG_MTK_GMO_RAM_OPTIMIZE
-		/*
-		* if cached > 30MB, don't kill ub:secureRandom while its adj is 9
-		*/
-		if (!strcmp(p->comm, "ub:secureRandom") &&
-			(REVERT_ADJ(oom_score_adj) == 9) && (other_file > 30*256)) {
-			pr_info("select but ignore '%s' (%d), oom_score_adj %d, oom_adj %d, size %d, to kill, cache %ldkB is below limit %ldkB",
-							p->comm, p->pid,
-							oom_score_adj, REVERT_ADJ(oom_score_adj),
-							tasksize,
-							other_file * (long)(PAGE_SIZE / 1024),
-							minfree * (long)(PAGE_SIZE / 1024));
-		    continue;
-		}
-#endif
 		selected = p;
 		selected_tasksize = tasksize;
 		selected_oom_score_adj = oom_score_adj;
 		lowmem_print(2, "select '%s' (%d), adj %d, score_adj %hd, size %d, to kill\n",
 			     p->comm, p->pid, REVERT_ADJ(oom_score_adj), oom_score_adj, tasksize);
 	}
-
 	if (selected) {
 		long cache_size = other_file * (long)(PAGE_SIZE / 1024);
 		long cache_limit = minfree * (long)(PAGE_SIZE / 1024);

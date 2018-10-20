@@ -75,9 +75,6 @@ ENDPROC(v7_invalidate_l1)
 ENTRY(v7_flush_icache_all)
 	mov	r0, #0
 	ALT_SMP(mcr	p15, 0, r0, c7, c1, 0)		@ invalidate I-cache inner shareable
-#ifdef CONFIG_ARM_ERRATA_831171
-	ALT_SMP(mcr     p15, 0, r0, c7, c1, 0)          @ invalidate I-cache inner shareable
-#endif 
 	ALT_UP(mcr	p15, 0, r0, c7, c5, 0)		@ I+BTB cache invalidate
 	mov	pc, lr
 ENDPROC(v7_flush_icache_all)
@@ -191,9 +188,6 @@ ENTRY(v7_flush_kern_cache_all)
 	bl	v7_flush_dcache_all
 	mov	r0, #0
 	ALT_SMP(mcr	p15, 0, r0, c7, c1, 0)	@ invalidate I-cache inner shareable
-#ifdef CONFIG_ARM_ERRATA_831171
-	ALT_SMP(mcr     p15, 0, r0, c7, c1, 0)  @ invalidate I-cache inner shareable
-#endif
 	ALT_UP(mcr	p15, 0, r0, c7, c5, 0)	@ I+BTB cache invalidate
  ARM(	ldmfd	sp!, {r4-r5, r7, r9-r11, lr}	)
  THUMB(	ldmfd	sp!, {r4-r7, r9-r11, lr}	)
@@ -212,9 +206,6 @@ ENTRY(v7_flush_kern_cache_louis)
 	bl	v7_flush_dcache_louis
 	mov	r0, #0
 	ALT_SMP(mcr	p15, 0, r0, c7, c1, 0)	@ invalidate I-cache inner shareable
-#ifdef CONFIG_ARM_ERRATA_831171
-	ALT_SMP(mcr     p15, 0, r0, c7, c1, 0)  @ invalidate I-cache inner shareable
-#endif 
 	ALT_UP(mcr	p15, 0, r0, c7, c5, 0)	@ I+BTB cache invalidate
  ARM(	ldmfd	sp!, {r4-r5, r7, r9-r11, lr}	)
  THUMB(	ldmfd	sp!, {r4-r7, r9-r11, lr}	)
@@ -291,7 +282,7 @@ ENTRY(v7_coherent_user_range)
  USER(	mcr	p15, 0, r12, c7, c14, 1	)	@ clean & invalidate D line to the point of coherence
 #else
  USER(	mcr	p15, 0, r12, c7, c11, 1	)	@ clean D line to the point of unification
-#endif 
+#endif
 	add	r12, r12, r2
 	cmp	r12, r1
 	blo	1b
@@ -300,20 +291,10 @@ ENTRY(v7_coherent_user_range)
 	sub	r3, r2, #1
 	bic	r12, r0, r3
 2:
-#ifdef CONFIG_ARM_ERRATA_828419
- USER(  mcr     p15, 0, r12, c7, c1, 0  )       @ invalidate I ALL
-#ifdef CONFIG_ARM_ERRATA_831171
- USER(  mcr     p15, 0, r12, c7, c1, 0  )       @ invalidate I ALL
-#endif 
-#else
  USER(	mcr	p15, 0, r12, c7, c5, 1	)	@ invalidate I line
-#ifdef CONFIG_ARM_ERRATA_831171
-  USER(  mcr     p15, 0, r12, c7, c5, 1  )       @ invalidate I line
-#endif 
 	add	r12, r12, r2
 	cmp	r12, r1
 	blo	2b
-#endif
 	mov	r0, #0
 	ALT_SMP(mcr	p15, 0, r0, c7, c1, 6)	@ invalidate BTB Inner Shareable
 	ALT_UP(mcr	p15, 0, r0, c7, c5, 6)	@ invalidate BTB

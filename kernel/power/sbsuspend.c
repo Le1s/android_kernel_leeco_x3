@@ -106,7 +106,7 @@ void sb_enable(void)
     //pm_warn("turn backlight off\n");
     //mt65xx_leds_brightness_set(MT65XX_LED_TYPE_BUTTON, 0);
     //mt65xx_leds_brightness_set(MT65XX_LED_TYPE_LCD, 0);
-    
+
     pm_warn("sb_handler_count = %d, sb_handler_forbid_id = 0x%x\n", sb_handler_count, sb_handler_forbid_id);
     list_for_each_entry(pos, &sb_handlers, link) {
         if (pos->enable != NULL) {
@@ -115,7 +115,7 @@ void sb_enable(void)
                     pm_warn("sb enable handler %d: [%pf], level: %d\n", count, pos->enable, pos->level);
                 pos->enable(pos);
             }
-            count++; 
+            count++;
         }
     }
 
@@ -144,7 +144,7 @@ void sb_disable(void)
                     pm_warn("sb disable handler %d: [%pf], level: %d\n", count, pos->disable, pos->level);
                 pos->disable(pos);
             }
-            count++; 
+            count++;
         }
     }
 
@@ -177,7 +177,7 @@ void sb_suspend(void)
                     pm_warn("sb enable handler %d: [%pf], level: %d\n", count, pos->suspend, pos->level);
                 pos->suspend(pos);
             }
-            count++; 
+            count++;
         }
     }
 
@@ -206,7 +206,7 @@ void sb_resume(void)
                     pm_warn("sb disable handler %d: [%pf], level: %d\n", count, pos->resume, pos->level);
                 pos->resume(pos);
             }
-            count++; 
+            count++;
         }
     }
 
@@ -237,7 +237,7 @@ void sb_plug_in(void)
                     pm_warn("sb plug_in handler %d: [%pf], level: %d\n", count, pos->plug_in, pos->level);
                 pos->plug_in(pos);
             }
-            count++; 
+            count++;
         }
     }
 
@@ -269,7 +269,7 @@ void sb_plug_out(void)
                     pm_warn("sb plug_out handler %d: [%pf], level: %d\n", count, pos->plug_out, pos->level);
                 pos->plug_out(pos);
             }
-            count++; 
+            count++;
         }
     }
 
@@ -284,7 +284,7 @@ EXPORT_SYMBOL(sb_plug_out);
 void sb_event(sb_event_t event)
 {
     mutex_lock(&sb_mutex);
-    
+
     if (sbsuspend_debug_mask & DEBUG_USER_STATE) {
         struct timespec ts;
         struct rtc_time tm;
@@ -298,13 +298,13 @@ void sb_event(sb_event_t event)
             tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday,
             tm.tm_hour, tm.tm_min, tm.tm_sec, ts.tv_nsec);
     }
-    
+
     switch (sb_state)
     {
         case SB_STATE_DISABLE:
-            
+
         case SB_STATE_ENABLE:
-            
+
     if (!old_sleep && new_state != PM_SUSPEND_ON) {
         state |= SUSPEND_REQUESTED;
         sb_enable();
@@ -315,7 +315,7 @@ void sb_event(sb_event_t event)
     sb_state = new_state;
 
     mutex_unlock(&sb_mutex);
-    
+
 }
 */
 
@@ -381,7 +381,7 @@ static ssize_t sb_state_store(struct kobject *kobj, struct kobj_attribute *attr,
         if (!sb_bypass)
         {
             state = decode_sb_state(buf, n);
-            
+
             switch (state)
             {
                 case SB_STATE_DISABLE:

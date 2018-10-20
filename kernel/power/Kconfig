@@ -232,7 +232,7 @@ menuconfig TOI_CORE
 
 	config TOI_DEFAULT_IMAGE_SIZE_LIMIT
 		int "Default image size limit"
-		range -2 65536 
+		range -2 65536
 		default "-2"
 		depends on TOI_CORE
 		---help---

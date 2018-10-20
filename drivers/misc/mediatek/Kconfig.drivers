@@ -597,34 +597,34 @@ config MTK_GF516
     bool "MTK_GF516 for MediaTek package"
     default n
     depends on MTK_FINGERPRINT
-    
+
 config FINGERPRINT_GOODIX_GF_TEE
   bool FINGERPRINT_GOODIX_GF_TEE
   default y
   help
     Goodix Fingerprint chip GF316M/GF318M/GF3118M/GF518M/GF5118M/GF516M/GF3208/GF5216 TEE driver
-        
+
 # Magnet sensor
 config MTK_MXG2320_NEW
-        bool "MXG2320 for MediaTek package"	
+        bool "MXG2320 for MediaTek package"
         default n
 
 config MTK_MMC3524X
-        bool "MMC3524X for MediaTek package"	
+        bool "MMC3524X for MediaTek package"
         default n
 
 # gsensor
 config MTK_LSM6DS0_ACC
-		bool "LSM6DS0_ACC for MediaTek package"	
+		bool "LSM6DS0_ACC for MediaTek package"
         default n
 # gysensor
 config MTK_LSM6DS0
-		bool "LSM6DS0 for MediaTek package"	
+		bool "LSM6DS0 for MediaTek package"
         default n
 
 # HWID
 config X3_HWID
-        bool "X3_HWID for MediaTek package"	
+        bool "X3_HWID for MediaTek package"
         default n
 #RGB LED
 config MTK_AW2013_LEDS
@@ -633,7 +633,7 @@ config MTK_AW2013_LEDS
 
 config MTK_LM3533_LEDS
 	bool "LM3533 Led driver for MediaTek package"
-        default n	
+        default n
 
 # P/L sensor
 config MTK_LTR579
@@ -739,7 +739,7 @@ config USB_TUSB320
 	---help---
 	  Enables support tusb type c driver kernel framework.
 	  If unsure, say N.
-	  
+
 config USBIF_COMPLIANCE
         tristate "MediaTek MUSB U3 USBIF COMPLIANCE"
         default n
@@ -1235,7 +1235,7 @@ config MTK_EXTMEM
 config CPU_LOW_POWER
 	bool "MTK CPU_LOW_POWER_SUPPORT"
 	default y
-	  
+
 config MTK_INHOUSE_GPU
 	bool "MTK_INHOUSE_GPU"
 	help

@@ -129,6 +129,7 @@
 #include <linux/inetdevice.h>
 #include <linux/cpu_rmap.h>
 #include <linux/static_key.h>
+
 #include <net/udp.h>
 #include "net-sysfs.h"
 
@@ -2711,7 +2712,6 @@ static inline int __dev_xmit_skb(struct sk_buff *skb, struct Qdisc *q,
 
 	spin_lock(root_lock);
 	if (unlikely(test_bit(__QDISC_STATE_DEACTIVATED, &q->state))) {
-		printk(KERN_WARNING "[mtk_net]__dev_xmit_skb drop skb_len = %d \n", skb->len);
 		kfree_skb(skb);
 		rc = NET_XMIT_DROP;
 	} else if ((q->flags & TCQ_F_CAN_BYPASS) && !qdisc_qlen(q) &&
@@ -2824,18 +2824,16 @@ int dev_queue_xmit(struct sk_buff *skb)
 	skb_reset_mac_header(skb);
 
 #ifdef UDP_SKT_WIFI
-	
 	if (unlikely((sysctl_met_is_enable == 1) && (sysctl_udp_met_port > 0)
 		 && (ip_hdr(skb)->protocol == IPPROTO_UDP) && skb->sk)) {
-		
-	    if (sysctl_udp_met_port == ntohs((inet_sk(skb->sk))->inet_sport)) {
-	    	struct udphdr * udp_iphdr = udp_hdr(skb);
-	    	if (udp_iphdr && (ntohs(udp_iphdr->len) >= 12)) {
-	            __u16 * seq_id = (__u16 *)((char *)udp_iphdr + 10);
-	            udp_event_trace_printk("F|%d|%s|%d\n", current->pid, *seq_id);
-	            
-	    	}
-	    }
+
+		if (sysctl_udp_met_port == ntohs((inet_sk(skb->sk))->inet_sport)) {
+			struct udphdr * udp_iphdr = udp_hdr(skb);
+			if (udp_iphdr && (ntohs(udp_iphdr->len) >= 12)) {
+				__u16 * seq_id = (__u16 *)((char *)udp_iphdr + 10);
+				udp_event_trace_printk("F|%d|%s|%d\n", current->pid, *seq_id);
+			}
+		}
 	}
 #endif
 

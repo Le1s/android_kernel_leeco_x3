@@ -11,11 +11,6 @@
 
 /* #define VERBOSE_DEBUG */
 
-#ifdef pr_fmt
-#undef pr_fmt
-#endif
-#define pr_fmt(fmt) "["KBUILD_MODNAME"]" fmt
-
 #include <linux/kallsyms.h>
 #include <linux/kernel.h>
 #include <linux/slab.h>
@@ -25,10 +20,6 @@
 
 #include <linux/usb/composite.h>
 #include <asm/unaligned.h>
-
-#include <linux/printk.h>
-
-
 
 /*
  * The code in this file is utility code, used to build a gadget driver
@@ -194,10 +185,8 @@ int usb_add_function(struct usb_configuration *config,
 		struct usb_function *function)
 {
 	int	value = -EINVAL;
-	
-	pr_debug("[XLOG_DEBUG][USB][COM]%s: \n", __func__);
 
-	INFO(config->cdev, "adding '%s'/%p to config '%s'/%p\n",
+	DBG(config->cdev, "adding '%s'/%p to config '%s'/%p\n",
 			function->name, function,
 			config->label, config);
 
@@ -231,7 +220,7 @@ int usb_add_function(struct usb_configuration *config,
 
 done:
 	if (value)
-		INFO(config->cdev, "adding '%s'/%p --> %d\n",
+		DBG(config->cdev, "adding '%s'/%p --> %d\n",
 				function->name, function, value);
 	return value;
 }
@@ -239,17 +228,13 @@ EXPORT_SYMBOL_GPL(usb_add_function);
 
 void usb_remove_function(struct usb_configuration *c, struct usb_function *f)
 {
-	if (f->disable) {
-		INFO(c->cdev, "disable function '%s'/%p\n", f->name, f);
+	if (f->disable)
 		f->disable(f);
-	}
 
 	bitmap_zero(f->endpoints, 32);
 	list_del(&f->list);
-	if (f->unbind) {
-		INFO(c->cdev, "unbind function '%s'/%p\n", f->name, f);
+	if (f->unbind)
 		f->unbind(c, f);
-	}
 }
 EXPORT_SYMBOL_GPL(usb_remove_function);
 
@@ -611,7 +596,6 @@ static void reset_config(struct usb_composite_dev *cdev)
 	DBG(cdev, "reset config\n");
 
 	list_for_each_entry(f, &cdev->config->functions, list) {
-		INFO(cdev, "disable function '%s'/%p\n", f->name, f);
 		if (f->disable)
 			f->disable(f);
 
@@ -793,19 +777,18 @@ int usb_add_config(struct usb_composite_dev *cdev,
 					struct usb_function, list);
 			list_del(&f->list);
 			if (f->unbind) {
-				INFO(cdev, "unbind function '%s'/%p\n",
+				DBG(cdev, "unbind function '%s'/%p\n",
 					f->name, f);
 				f->unbind(config, f);
 				/* may free memory for "f" */
 			}
 		}
 		list_del(&config->list);
-		pr_debug("[XLOG_DEBUG][USB][COM]bind fialed and the list should be init because there is one entry only");
 		config->cdev = NULL;
 	} else {
 		unsigned	i;
 
-		INFO(cdev, "cfg %d/%p speeds:%s%s%s\n",
+		DBG(cdev, "cfg %d/%p speeds:%s%s%s\n",
 			config->bConfigurationValue, config,
 			config->superspeed ? " super" : "",
 			config->highspeed ? " high" : "",
@@ -848,13 +831,13 @@ static void unbind_config(struct usb_composite_dev *cdev,
 				struct usb_function, list);
 		list_del(&f->list);
 		if (f->unbind) {
-			INFO(cdev, "unbind function '%s'/%p\n", f->name, f);
+			DBG(cdev, "unbind function '%s'/%p\n", f->name, f);
 			f->unbind(config, f);
 			/* may free memory for "f" */
 		}
 	}
 	if (config->unbind) {
-		INFO(cdev, "unbind config '%s'/%p\n", config->label, config);
+		DBG(cdev, "unbind config '%s'/%p\n", config->label, config);
 		config->unbind(config);
 			/* may free memory for "c" */
 	}
@@ -882,15 +865,8 @@ void usb_remove_config(struct usb_composite_dev *cdev,
 	if (cdev->config == config)
 		reset_config(cdev);
 
+	list_del(&config->list);
 
-	if(config->cdev != NULL)
-	{
-		list_del(&config->list);
-	}else
-  	{
-        DBG(cdev, "%s: config->list has been delete!! \n", __func__);
-  	}
-  	
 	spin_unlock_irqrestore(&cdev->lock, flags);
 
 	unbind_config(cdev, config);
@@ -1242,7 +1218,6 @@ void composite_setup_complete(struct usb_ep *ep, struct usb_request *req)
 				"setup complete --> %d, %d/%d\n",
 				req->status, req->actual, req->length);
 }
-
 EXPORT_SYMBOL_GPL(composite_setup_complete);
 
 /*
@@ -1265,8 +1240,6 @@ composite_setup(struct usb_gadget *gadget, const struct usb_ctrlrequest *ctrl)
 	u16				w_length = le16_to_cpu(ctrl->wLength);
 	struct usb_function		*f = NULL;
 	u8				endp;
-
-	INFO(cdev, "%s bRequest=0x%X\n", __func__, ctrl->bRequest);
 
 	/* partial re-init of the response message; the function or the
 	 * gadget might need to intercept e.g. a control-OUT completion
@@ -1312,8 +1285,6 @@ composite_setup(struct usb_gadget *gadget, const struct usb_ctrlrequest *ctrl)
 
 			value = min(w_length, (u16) sizeof cdev->desc);
 			memcpy(req->buf, &cdev->desc, value);
-			INFO(cdev, "[COM]USB_REQ_GET_DESCRIPTOR: "
-							"USB_DT_DEVICE, value=%d\n",value);
 			break;
 		case USB_DT_DEVICE_QUALIFIER:
 			if (!gadget_is_dualspeed(gadget) ||
@@ -1322,12 +1293,8 @@ composite_setup(struct usb_gadget *gadget, const struct usb_ctrlrequest *ctrl)
 			device_qual(cdev);
 			value = min_t(int, w_length,
 				sizeof(struct usb_qualifier_descriptor));
-			INFO(cdev, "[COM]USB_REQ_GET_DESCRIPTOR: "
-							"USB_DT_DEVICE_QUALIFIER, value=%d\n",value);
 			break;
 		case USB_DT_OTHER_SPEED_CONFIG:
-			INFO(cdev, "[COM]USB_REQ_GET_DESCRIPTOR: "
-							"USB_DT_OTHER_SPEED_CONFIG\n");
 			if (!gadget_is_dualspeed(gadget) ||
 			    gadget->speed >= USB_SPEED_SUPER)
 				break;
@@ -1336,28 +1303,18 @@ composite_setup(struct usb_gadget *gadget, const struct usb_ctrlrequest *ctrl)
 			value = config_desc(cdev, w_value);
 			if (value >= 0)
 				value = min(w_length, (u16) value);
-			INFO(cdev, "[COM]USB_REQ_GET_DESCRIPTOR: "
-							"USB_DT_CONFIG, value=%d\n",value);
 			break;
 		case USB_DT_STRING:
 			value = get_string(cdev, req->buf,
 					w_index, w_value & 0xff);
-			if (value >= 0) {
+			if (value >= 0)
 				value = min(w_length, (u16) value);
-				INFO(cdev, "[COM]USB_REQ_GET_DESCRIPTOR: "
-						"USB_DT_STRING, value=%d\n" ,value);
-			}
 			break;
 		case USB_DT_BOS:
 			if (gadget_is_superspeed(gadget)) {
 				value = bos_desc(cdev);
 				value = min(w_length, (u16) value);
 			}
-			INFO(cdev, "[COM]USB_REQ_GET_DESCRIPTOR: "
-						"USB_DT_BOS, value=%d\n",value);
-			break;
-		default:
-			INFO(cdev, "[COM]USB_REQ_GET_DESCRIPTOR w_value=0x%X\n", w_value);
 			break;
 		}
 		break;
@@ -1377,9 +1334,6 @@ composite_setup(struct usb_gadget *gadget, const struct usb_ctrlrequest *ctrl)
 		spin_lock(&cdev->lock);
 		value = set_config(cdev, ctrl, w_value);
 		spin_unlock(&cdev->lock);
-
-		INFO(cdev, "[COM]USB_REQ_SET_CONFIGURATION: "
-						"value=%d\n",value);
 		break;
 	case USB_REQ_GET_CONFIGURATION:
 		if (ctrl->bRequestType != USB_DIR_IN)
@@ -1389,10 +1343,6 @@ composite_setup(struct usb_gadget *gadget, const struct usb_ctrlrequest *ctrl)
 		else
 			*(u8 *)req->buf = 0;
 		value = min(w_length, (u16) 1);
-
-		INFO(cdev, "[COM]USB_REQ_GET_CONFIGURATION: "
-						"value=%d\n", value);
-
 		break;
 
 	/* function drivers must handle get/set altsetting */
@@ -1403,7 +1353,7 @@ composite_setup(struct usb_gadget *gadget, const struct usb_ctrlrequest *ctrl)
 			break;
 
 		if (cdev->config)
-		    f = cdev->config->interface[intf];
+			f = cdev->config->interface[intf];
 		else
 			INFO(cdev, "%s: cdev->config = NULL \n", __func__);
 
@@ -1426,9 +1376,6 @@ composite_setup(struct usb_gadget *gadget, const struct usb_ctrlrequest *ctrl)
 			DBG(cdev, "delayed_status count %d\n",
 					cdev->delayed_status);
 		}
-
-		INFO(cdev, "[COM]USB_REQ_SET_INTERFACE: "
-						"value=%d\n", value);
 		break;
 	case USB_REQ_GET_INTERFACE:
 		if (ctrl->bRequestType != (USB_DIR_IN|USB_RECIP_INTERFACE))
@@ -1444,9 +1391,6 @@ composite_setup(struct usb_gadget *gadget, const struct usb_ctrlrequest *ctrl)
 			break;
 		*((u8 *)req->buf) = value;
 		value = min(w_length, (u16) 1);
-
-		INFO(cdev, "[COM]USB_REQ_GET_INTERFACE: "
-						"value=%d\n", value);
 		break;
 
 	/*
@@ -1457,7 +1401,6 @@ composite_setup(struct usb_gadget *gadget, const struct usb_ctrlrequest *ctrl)
 	 * interface of the function
 	 */
 	case USB_REQ_GET_STATUS:
-		INFO(cdev, "[COM]USB_REQ_GET_STATUS\n");
 		if (!gadget_is_superspeed(gadget))
 			goto unknown;
 		if (ctrl->bRequestType != (USB_DIR_IN | USB_RECIP_INTERFACE))
@@ -1481,15 +1424,12 @@ composite_setup(struct usb_gadget *gadget, const struct usb_ctrlrequest *ctrl)
 	 */
 	case USB_REQ_CLEAR_FEATURE:
 	case USB_REQ_SET_FEATURE:
-		INFO(cdev, "[COM]%s w_value=%d\n",
-			((ctrl->bRequest==USB_REQ_SET_FEATURE)? "USB_REQ_SET_FEATURE" : "USB_REQ_CLEAR_FEATURE"), w_value);
 		if (!gadget_is_superspeed(gadget))
 			goto unknown;
 		if (ctrl->bRequestType != (USB_DIR_OUT | USB_RECIP_INTERFACE))
 			goto unknown;
 		switch (w_value) {
 		case USB_INTRF_FUNC_SUSPEND:
-			INFO(cdev, "[COM]USB_INTRF_FUNC_SUSPEND\n");
 			if (!cdev->config || intf >= MAX_CONFIG_INTERFACES)
 				break;
 			f = cdev->config->interface[intf];
@@ -1507,13 +1447,9 @@ composite_setup(struct usb_gadget *gadget, const struct usb_ctrlrequest *ctrl)
 			break;
 		}
 		break;
-	case USB_REQ_SET_SEL:
-		INFO(cdev, "[COM]USB_REQ_SET_SEL Pretend success\n");
-		value = 0;
-		break;
 	default:
 unknown:
-		INFO(cdev,
+		VDBG(cdev,
 			"non-core control req%02x.%02x v%04x i%04x l%d\n",
 			ctrl->bRequestType, ctrl->bRequest,
 			w_value, w_index, w_length);
@@ -1574,11 +1510,6 @@ unknown:
 	}
 
 done:
-	if(value < 0) {
-		INFO(cdev, "[COM]composite_setup: value=%d,"
-				"bRequestType=0x%x, bRequest=0x%x, w_value=0x%x, w_length=0x%x \n", value,
-				ctrl->bRequestType,	ctrl->bRequest, w_value, w_length);
-	}
 	/* device either stalls (value < 0) or reports success */
 	return value;
 }
@@ -1600,7 +1531,6 @@ void composite_disconnect(struct usb_gadget *gadget)
 	/* ALPS00235316 and ALPS00234976 */
 	/* reset the complet function */
 	if(cdev->req->complete)	{
-		INFO(cdev, "[COM]%s: reassign the complete function!!\n", __func__);
 		cdev->req->complete = composite_setup_complete;
 	}
 
@@ -1899,8 +1829,6 @@ int usb_composite_probe(struct usb_composite_driver *driver)
 
 	if (!driver || !driver->dev || !driver->bind)
 		return -EINVAL;
-
-	pr_debug("[XLOG_DEBUG][USB][COM]%s: driver->name = %s", __func__, driver->name);
 
 	if (!driver->name)
 		driver->name = "composite";

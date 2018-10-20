@@ -838,7 +838,7 @@ void udp_event_trace_printk(const char * fmt, int pid, __u16 port)
 
 #ifdef CONFIG_TRACING
 	if(unlikely(0 == udp_tracing_mark_write_addr)) {
-	    udp_tracing_mark_write_addr = kallsyms_lookup_name("tracing_mark_write");
+		udp_tracing_mark_write_addr = kallsyms_lookup_name("tracing_mark_write");
 	}
 	event_trace_printk(udp_tracing_mark_write_addr, fmt, pid, MET_SOCKET_LATENCY_NAME, ntohs(port));
 #endif
@@ -931,17 +931,15 @@ int udp_sendmsg(struct kiocb *iocb, struct sock *sk, struct msghdr *msg,
 	ipc.oif = sk->sk_bound_dev_if;
 
 #ifdef UDP_SKT_WIFI
-	
+
 	if (unlikely((sysctl_met_is_enable == 1) && (sysctl_udp_met_port > 0))) {
-		
-	    if ((ntohs(inet->inet_sport) == sysctl_udp_met_port) && (len >= 4)) {
-	        __u16 * seq_id = (__u16 *)((char *)msg->msg_iov->iov_base + 2);
-	        udp_event_trace_printk("S|%d|%s|%d\n", current->pid, *seq_id);
-	        
-	    }
+
+		if ((ntohs(inet->inet_sport) == sysctl_udp_met_port) && (len >= 4)) {
+			__u16 * seq_id = (__u16 *)((char *)msg->msg_iov->iov_base + 2);
+			udp_event_trace_printk("S|%d|%s|%d\n", current->pid, *seq_id);
+		}
 	}
 #endif
-
 
 	sock_tx_timestamp(sk, &ipc.tx_flags);
 

@@ -64,7 +64,7 @@ struct eth_dev {
 	struct usb_gadget	*gadget;
 
 	spinlock_t		req_lock;	/* guard {tx}_reqs */
-	spinlock_t		reqrx_lock;	/* guard {rx}_reqs */	
+	spinlock_t		reqrx_lock;	/* guard {rx}_reqs */
 	struct list_head	tx_reqs, rx_reqs;
 	unsigned		tx_qlen;
 /* Minimum number of TX USB request queued to UDC */
@@ -312,7 +312,7 @@ static void rx_complete(struct usb_ep *ep, struct usb_request *req)
 	struct sk_buff	*skb = req->context;
 	struct eth_dev	*dev = ep->driver_data;
 	int		status = req->status;
-	bool    queue = 0;
+	bool		queue = 0;
 
 	switch (status) {
 
@@ -542,8 +542,8 @@ static void process_rx_w(struct work_struct *work)
 
 static void process_rx_w1(struct work_struct *work)
 {
-	struct eth_dev	*dev = container_of(work, struct eth_dev, rx_work1);	
-	
+	struct eth_dev	*dev = container_of(work, struct eth_dev, rx_work1);
+
 	if (!dev->port_usb)
 		return;
 
@@ -690,9 +690,9 @@ static void tx_complete(struct usb_ep *ep, struct usb_request *req)
 		spin_lock(&dev->req_lock);
 		if(dev->no_tx_req_used < tx_wakeup_threshold)
 			netif_wake_queue(dev->net);
-		spin_unlock(&dev->req_lock);				
+		spin_unlock(&dev->req_lock);
 	}
-		
+
 }
 
 static inline int is_promisc(u16 cdc_filter)
@@ -775,7 +775,7 @@ static netdev_tx_t eth_start_xmit(struct sk_buff *skb,
 		retval = alloc_tx_buffer(dev);
 		if (retval < 0) {
 			spin_unlock_irqrestore(&dev->req_lock, flags);
- 			return -ENOMEM;
+			return -ENOMEM;
 		}
 	}
 	spin_unlock_irqrestore(&dev->req_lock, flags);
@@ -1137,10 +1137,10 @@ struct eth_dev *gether_setup_name(struct usb_gadget *g, u8 ethaddr[ETH_ALEN],
 	dev = netdev_priv(net);
 	spin_lock_init(&dev->lock);
 	spin_lock_init(&dev->req_lock);
-	spin_lock_init(&dev->reqrx_lock);	
+	spin_lock_init(&dev->reqrx_lock);
 	INIT_WORK(&dev->work, eth_work);
 	INIT_WORK(&dev->rx_work, process_rx_w);
-        INIT_WORK(&dev->rx_work1, process_rx_w1);
+	INIT_WORK(&dev->rx_work1, process_rx_w1);
 	INIT_LIST_HEAD(&dev->tx_reqs);
 	INIT_LIST_HEAD(&dev->rx_reqs);
 
@@ -1256,9 +1256,9 @@ struct net_device *gether_connect(struct gether *link)
 	if (result == 0)
 	{
 		result = alloc_tx_requests(dev, link, qlen(dev->gadget));
-		if(result == 0)  
-			result = alloc_rx_requests(dev, link, qlenrx(dev->gadget));		
-	} 
+		if(result == 0)
+			result = alloc_rx_requests(dev, link, qlenrx(dev->gadget));
+	}
 
 	if (result == 0) {
 		dev->zlp = link->is_zlp_ok;
@@ -1408,7 +1408,7 @@ static int __init gether_init(void)
 		pr_err("%s: Unable to create workqueue: uether\n", __func__);
 		return -ENOMEM;
 	}
-	uether_wq1  = create_singlethread_workqueue("uether_rx1");	
+	uether_wq1  = create_singlethread_workqueue("uether_rx1");
 	if (!uether_wq1) {
 		destroy_workqueue(uether_wq);
 		pr_err("%s: Unable to create workqueue: uether\n", __func__);

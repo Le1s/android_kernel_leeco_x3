@@ -975,15 +975,13 @@ void ping_rcv(struct sk_buff *skb)
 
 	sk = ping_lookup(net, skb, ntohs(icmph->un.echo.id));
 	if (sk != NULL) {
-#ifdef CONFIG_MTK_NET_LOGGING  
-		printk(KERN_INFO "[mtk_net][ping_debug]rcv on sk %p\n", sk);
-#endif
+
 		ping_queue_rcv_skb(sk, skb_get(skb));
 		/*mtk_net: don't put sock here, do sock_put after free skb*/
 		/* sock_put(sk); */
 		return;
 	}
-	pr_info("[mtk_net][ping_debug]no socket, dropping\n");
+	pr_debug("no socket, dropping\n");
 
 	/* We're called from icmp_rcv(). kfree_skb() is done there. */
 }
@@ -1030,7 +1028,7 @@ static struct sock *ping_get_first(struct seq_file *seq, int start)
 
 		sk_nulls_for_each(sk, node, hslot) {
 			if (net_eq(sock_net(sk), net) &&
-			    sk->sk_family == state->family)
+				sk->sk_family == state->family)
 				goto found;
 		}
 	}

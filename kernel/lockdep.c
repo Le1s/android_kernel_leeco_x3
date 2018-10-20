@@ -11,7 +11,8 @@
  * this code maps all the lock dependencies as they occur in a live kernel
  * and will warn about the following classes of locking bugs:
  *
- * - lock inversion scenarios * - circular lock dependencies
+ * - lock inversion scenarios
+ * - circular lock dependencies
  * - hardirq/softirq safe/unsafe locking bugs
  *
  * Bugs are reported even if the current locking scenario does not cause
@@ -69,10 +70,9 @@ module_param(lock_stat, int, 0644);
 
 static void lockdep_aee(void)
 {
-    char aee_str[40];
-    snprintf( aee_str, 40, "[%s]LockProve Warning", current->comm);
-    aee_kernel_warning_api(__FILE__, __LINE__, DB_OPT_DUMMY_DUMP | DB_OPT_FTRACE, aee_str,"LockProve Debug\n");
-
+	char aee_str[40];
+	snprintf( aee_str, 40, "[%s]LockProve Warning", current->comm);
+	aee_kernel_warning_api(__FILE__, __LINE__, DB_OPT_DUMMY_DUMP | DB_OPT_FTRACE, aee_str,"LockProve Debug\n");
 }
 
 /*
@@ -1165,13 +1165,14 @@ print_circular_bug_header(struct lock_list *entry, unsigned int depth,
 
 	if (debug_locks_silent)
 		return 0;
-    //Add by Mtk
-    if(depth < 5){
-    	lockdep_aee();
-    }
+
+	//Add by Mtk
+	if(depth < 5){
+		lockdep_aee();
+	}
 	printk("\n");
 	printk("======================================================\n");
-	printk("[ ProveLock INFO: possible circular locking dependency detected ]\n");
+	printk("[ INFO: possible circular locking dependency detected ]\n");
 	print_kernel_ident();
 	printk("-------------------------------------------------------\n");
 	printk("%s/%d is trying to acquire lock:\n",
@@ -1507,12 +1508,12 @@ print_bad_irq_dependency(struct task_struct *curr,
 	if (!debug_locks_off_graph_unlock() || debug_locks_silent)
 		return 0;
 
-    //Add by Mtk
-    lockdep_aee();
+	//Add by Mtk
+	lockdep_aee();
 
 	printk("\n");
 	printk("======================================================\n");
-	printk("[ ProveLock INFO: %s-safe -> %s-unsafe lock order detected ]\n",
+	printk("[ INFO: %s-safe -> %s-unsafe lock order detected ]\n",
 		irqclass, irqclass);
 	print_kernel_ident();
 	printk("------------------------------------------------------\n");

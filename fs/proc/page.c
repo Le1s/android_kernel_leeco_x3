@@ -35,9 +35,9 @@ static ssize_t kpagecount_read(struct file *file, char __user *buf,
 
 	pfn = src / KPMSIZE;
 	if(src != max_pfn_kpmsize){
-        count = min_t(size_t, count, max_pfn_kpmsize - src);
+		count = min_t(size_t, count, max_pfn_kpmsize - src);
 	}
-	
+
 	if (src & KPMMASK || count & KPMMASK)
 		return -EINVAL;
 

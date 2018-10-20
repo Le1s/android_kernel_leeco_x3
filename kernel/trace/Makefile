@@ -65,4 +65,3 @@ obj-$(CONFIG_GPU_TRACEPOINTS) += gpu-traces.o
 libftrace-y := ftrace.o
 
 obj-$(CONFIG_TRACING) += mtk_trace.o
-obj-$(CONFIG_MT65XX_TRACER) += trace_mt65xx_mon.o

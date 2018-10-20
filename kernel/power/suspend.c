@@ -32,7 +32,7 @@
 
 #define MTK_SOLUTION 1
 
-#ifdef CONFIG_MTK_LEGACY 
+#ifdef CONFIG_MTK_LEGACY
 #define CONFIG_EARLYSUSPEND_LEGACY
 #endif
 
@@ -309,7 +309,7 @@ int suspend_devices_and_enter(suspend_state_t state)
 
 #ifdef CONFIG_TOI
 	drop_pagecache();
-#endif 
+#endif
 
 	trace_machine_suspend(state);
 	if (need_suspend_ops(state) && suspend_ops->begin) {
@@ -365,7 +365,7 @@ static void suspend_finish(void)
 	pm_notifier_call_chain(PM_POST_SUSPEND);
 	pm_restore_console();
 }
-    
+
 #if MTK_SOLUTION
 
 #define SYS_SYNC_TIMEOUT 2000

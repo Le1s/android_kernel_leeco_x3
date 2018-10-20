@@ -228,7 +228,6 @@ static int gic_set_type(struct irq_data *d, unsigned int type)
 	if (enabled)
 		writel_relaxed(enablemask, base + GIC_DIST_ENABLE_SET + enableoff);
 
-
 	raw_spin_unlock(&irq_controller_lock);
 
 	return 0;
@@ -852,7 +851,7 @@ static int gic_cnt __initdata;
 int __init gic_of_init(struct device_node *node, struct device_node *parent)
 {
 	void __iomem *cpu_base;
-	void __iomem *dist_base; 
+	void __iomem *dist_base;
 	u32 percpu_offset;
 	int irq;
 
@@ -863,7 +862,7 @@ int __init gic_of_init(struct device_node *node, struct device_node *parent)
 	WARN(!dist_base, "unable to map gic dist registers\n");
 
 	cpu_base = of_iomap(node, 1);
-	WARN(!cpu_base, "unable to map gic cpu registers\n"); 
+	WARN(!cpu_base, "unable to map gic cpu registers\n");
 
 	if (of_property_read_u32(node, "cpu-offset", &percpu_offset))
 		percpu_offset = 0;

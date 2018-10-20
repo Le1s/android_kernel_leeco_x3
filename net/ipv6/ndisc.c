@@ -1574,7 +1574,7 @@ int ndisc_rcv(struct sk_buff *skb)
 	}
 
 	memset(NEIGH_CB(skb), 0, sizeof(struct neighbour_cb));
-	
+
 	switch (msg->icmph.icmp6_type) {
 	case NDISC_NEIGHBOUR_SOLICITATION:
 		ndisc_recv_ns(skb);

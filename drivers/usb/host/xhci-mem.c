@@ -1494,7 +1494,7 @@ int xhci_endpoint_init(struct xhci_hcd *xhci,
 	{
 		CHIP_SW_VER sw_code = mt_get_chip_sw_ver();
 		unsigned int hw_code = mt_get_chip_hw_code();
-			
+
 		if((hw_code == 0x6595) && (sw_code <= CHIP_SW_VER_01)){
 			/* workaround for maxp size issue of RXXE */
 			if((max_packet % 4 == 2) && (max_packet % 16 != 14) &&

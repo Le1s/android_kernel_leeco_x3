@@ -32,7 +32,6 @@
 #include <sound/pcm_params.h>
 #include <sound/timer.h>
 
-#define DEBUG
 /*
  * fill ring buffer with silence
  * runtime->silence_start: starting pointer to silence area
@@ -376,7 +375,6 @@ static int snd_pcm_update_hw_ptr0(struct snd_pcm_substream *substream,
 					crossed_boundary++;
 				}
 				new_hw_ptr = hw_base + pos;
-				pr_debug("%s, overflow? new_hw_ptr=%ld, hw_base=%ld\n",__FUNCTION__,new_hw_ptr,hw_base);
 				goto __delta;
 			}
 		}
@@ -1892,7 +1890,7 @@ static int wait_for_avail(struct snd_pcm_substream *substream,
 	if (runtime->no_period_wakeup)
 		wait_time = MAX_SCHEDULE_TIMEOUT;
 	else {
-		wait_time = 3/*10*/;//Modified by MTK
+		wait_time = 10;
 		if (runtime->rate) {
 			long t = runtime->period_size * 2 / runtime->rate;
 			wait_time = max(t, wait_time);

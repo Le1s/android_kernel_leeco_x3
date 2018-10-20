@@ -441,15 +441,15 @@ static ssize_t show_##file_name				\
 	return sprintf(buf, "%u\n", policy->object);	\
 }
 
-static ssize_t show_cpuinfo_cei_max_freq(struct cpufreq_policy *policy, char *buf)		
-{			
+static ssize_t show_cpuinfo_cei_max_freq(struct cpufreq_policy *policy, char *buf)
+{
     if (policy->cpuinfo.max_freq == 1950000)
-	    return sprintf(buf, "%s\n", "2.0");	
+	    return sprintf(buf, "%s\n", "2.0");
 	else if (policy->cpuinfo.max_freq == 2158000)
 	    return sprintf(buf, "%s\n", "2.2");
 	else if (policy->cpuinfo.max_freq == 1846000)
 	    return sprintf(buf, "%s\n", "1.8");
-	else 
+	else
 		return sprintf(buf, "%s\n", "unknown");
 }
 
@@ -682,7 +682,7 @@ cpufreq_freq_attr_rw(scaling_setspeed);
 static struct attribute *default_attrs[] = {
 	&cpuinfo_min_freq.attr,
 	&cpuinfo_max_freq.attr,
-	&cpuinfo_cei_max_freq.attr,	
+	&cpuinfo_cei_max_freq.attr,
 	&cpuinfo_transition_latency.attr,
 	&scaling_min_freq.attr,
 	&scaling_max_freq.attr,

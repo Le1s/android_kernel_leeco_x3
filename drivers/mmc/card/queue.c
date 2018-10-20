@@ -20,6 +20,7 @@
 #include <linux/mmc/host.h>
 #include <linux/sched/rt.h>
 #include "queue.h"
+
 #include <linux/mmc/mmc.h>
 #define MMC_QUEUE_BOUNCESZ	65536
 
@@ -51,7 +52,7 @@ static int mmc_queue_thread(void *d)
 	struct mmc_queue *mq = d;
 	struct request_queue *q = mq->queue;
 #ifdef MMC_ENABLED_EMPTY_QUEUE_FLUSH
-#define UN_FLUSHED 0 
+#define UN_FLUSHED 0
 #define FLUSHING 1
 	int stop_status = UN_FLUSHED;
 #endif
@@ -77,7 +78,7 @@ static int mmc_queue_thread(void *d)
 
 		if (req || mq->mqrq_prev->req) {
 #ifdef MMC_ENABLED_EMPTY_QUEUE_FLUSH
-			if (!mq->mqrq_prev->req && mq->card && mmc_card_mmc(mq->card) && mq->card->ext_csd.cache_ctrl) { 
+			if (!mq->mqrq_prev->req && mq->card && mmc_card_mmc(mq->card) && mq->card->ext_csd.cache_ctrl) {
 				if(stop_status == FLUSHING){
 					mmc_stop_flush(mq->card);
 					stop_status = UN_FLUSHED;
@@ -110,8 +111,8 @@ static int mmc_queue_thread(void *d)
 		} else {
 #ifdef MMC_ENABLED_EMPTY_QUEUE_FLUSH
 			if ((stop_status == UN_FLUSHED) && mq->card && mmc_card_mmc(mq->card) && mq->card->ext_csd.cache_ctrl) {
-			    mmc_start_delayed_flush(mq->card);  
-			    stop_status = FLUSHING;
+				mmc_start_delayed_flush(mq->card);
+				stop_status = FLUSHING;
 			}
 #endif
 			if (kthread_should_stop()) {
@@ -228,11 +229,11 @@ int mmc_init_queue(struct mmc_queue *mq, struct mmc_card *card,
 	if (!mq->queue)
 		return -ENOMEM;
 
-#ifdef CONFIG_ZRAM    
-    if (mmc_card_mmc(card) &&
-        (totalram_pages << (PAGE_SHIFT - 10)) <= (256 * 1024))
-        mq->queue->backing_dev_info.ra_pages =
-    		(VM_MIN_READAHEAD * 1024) / PAGE_CACHE_SIZE;
+#ifdef CONFIG_ZRAM
+	if (mmc_card_mmc(card) &&
+	   (totalram_pages << (PAGE_SHIFT - 10)) <= (256 * 1024))
+		mq->queue->backing_dev_info.ra_pages =
+		(VM_MIN_READAHEAD * 1024) / PAGE_CACHE_SIZE;
 #endif // CONFIG_ZRAM
 	mq->mqrq_cur = mqrq_cur;
 	mq->mqrq_prev = mqrq_prev;

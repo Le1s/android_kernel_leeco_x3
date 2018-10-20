@@ -667,7 +667,7 @@ static inline void detach_timer(struct timer_list *timer, bool clear_pending)
 		printk(KERN_EMERG "MTK debug for detach_timer with next=MULL, timer=%p, timer->function=%p\n", timer, timer->function);
 		BUG();
 	}
-		
+
 	__list_del(entry->prev, entry->next);
 	if (clear_pending)
 		entry->next = NULL;
@@ -1136,9 +1136,9 @@ static void call_timer_fn(struct timer_list *timer, void (*fn)(unsigned long),
 	lock_map_acquire(&lockdep_map);
 
 	trace_timer_expire_entry(timer);
-    mt_trace_sft_start(fn);
+	mt_trace_sft_start(fn);
 	fn(data);
-    mt_trace_sft_end(fn);
+	mt_trace_sft_end(fn);
 	trace_timer_expire_exit(timer);
 
 	lock_map_release(&lockdep_map);
