@@ -1,8 +1,21 @@
-#include <linux/kernel.h>
-#include <linux/xlog.h>
+/*
+ * Copyright (C) 2015 MediaTek Inc.
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 2 as
+ * published by the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ */
 
-#include "jpeg_drv_reg.h"                                                                 
-#include "jpeg_drv_common.h"  
+#include <linux/kernel.h>
+/* #include <linux/xlog.h> */
+
+#include "jpeg_drv_reg.h"
+#include "jpeg_drv_common.h"
 
 #define JPEG_ENC_RST_BIT                        0x1
 
@@ -23,9 +36,7 @@
 
 #define JPEG_ENC_DEBUG_INFO0_GMC_IDLE_MASK      (1 << 13)
 
-#define JPEG_MSG pr_debug
-#define JPEG_WRN pr_debug
-#define JPEG_ERR pr_debug
+
 
 kal_uint32 _jpeg_enc_int_status = 0;
 
@@ -369,7 +380,8 @@ kal_uint32 jpeg_drv_enc_set_dst_buff(kal_uint32 dst_addr, kal_uint32 stall_size,
 
 	IMG_REG_WRITE((dst_addr & (~0xF)), REG_ADDR_JPEG_ENC_DST_ADDR0);
 
-	IMG_REG_WRITE(((dst_addr + stall_size) & (~0xF)), REG_ADDR_JPEG_ENC_STALL_ADDR0);
+    /* subtract stall address with 128 bytes in order to prevent HW write over */
+	IMG_REG_WRITE((((dst_addr + stall_size) & (~0xF)) - 128), REG_ADDR_JPEG_ENC_STALL_ADDR0);
 
 
 	return 1;

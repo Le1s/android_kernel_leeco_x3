@@ -1,4 +1,18 @@
+/*
+ * Copyright (C) 2015 MediaTek Inc.
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 2 as
+ * published by the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ */
+
 #include <linux/ioctl.h>
+
 
 #ifndef __JPEG_DRV_H__
 #define __JPEG_DRV_H__
@@ -86,13 +100,10 @@ typedef struct {
 #define D_MISC_ADDR_X			(1 << 0)
 #define D_MISC_ADDR_Y			(1 << 1)
 
-
 #define HORI 0
 #define VERT 1
 
 #define JPEG_ENC_DST_ADDR_OFFSET_MASK (0x0f)
-
-
 
 
 
@@ -472,24 +483,6 @@ typedef struct {
 typedef struct {
 	unsigned int *pChksum;
 } JpegDrvDecResult;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 /* ================================================================================ */
 

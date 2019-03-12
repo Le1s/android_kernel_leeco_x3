@@ -1,9 +1,24 @@
+/*
+ * Copyright (C) 2015 MediaTek Inc.
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 2 as
+ * published by the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ */
+
 #ifndef __JPEG_DRV_6589_REG_H__
 #define __JPEG_DRV_6589_REG_H__
 
-#include <mach/mt_reg_base.h>
+/* #include <mach/mt_reg_base.h> */
 
+/* #include <mach/sync_write.h> */
 #include <mach/sync_write.h>
+
 #include "jpeg_drv.h"
 
 #define JPEG_ENC_BASE   jpeg_dev_get_encoder_base_VA()

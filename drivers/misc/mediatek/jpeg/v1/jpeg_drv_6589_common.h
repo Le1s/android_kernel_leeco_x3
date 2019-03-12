@@ -1,50 +1,38 @@
+/*
+ * Copyright (C) 2015 MediaTek Inc.
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 2 as
+ * published by the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ */
+
 #ifndef __JPEG_DRV_6589_COMMON_H__
 #define __JPEG_DRV_6589_COMMON_H__
 
-/*
-//#include <linux/uaccess.h>
-//#include <linux/module.h>
-//#include <linux/fs.h>
-//#include <linux/platform_device.h>
-//#include <linux/cdev.h>
-//#include <linux/interrupt.h>
-//#include <linux/sched.h>
-//#include <linux/wait.h>
-//#include <linux/spinlock.h>
-//#include <linux/delay.h>
-//#include <linux/earlysuspend.h>
-//#include <linux/mm.h>
-//#include <linux/slab.h>
-//
-//#include <mach/mt6575_typedefs.h>
-//
-//#include <asm/tcm.h>
-//#include <asm/io.h>
-*/
-
-#include <mach/mt_typedefs.h>
+/* #include <mach/mt_typedefs.h> */
 /* #include <mach/typedefs.h> */
 
 #include "jpeg_drv.h"
+#ifndef CONFIG_MTK_CLKMGR
+#include <linux/clk.h>
+#endif
 
-
-
-
-
-
-/*
-typedef unsigned int    kal_uint32;
+typedef signed char     kal_int8;
+typedef signed short    kal_int16;
+typedef signed int      kal_int32;
+typedef long long       kal_int64;
 typedef unsigned char   kal_uint8;
-typedef int             kal_int32;
-*/
+typedef unsigned short  kal_uint16;
+typedef unsigned int    kal_uint32;
+typedef unsigned long long  kal_uint64;
+typedef char            kal_char;
 
-
-/* Decoder Driver */
-
-
-
-
-/* Encoder Driver */
+extern kal_uint32 _jpeg_enc_int_status;
 
 typedef enum {
 	YUYV,
@@ -103,10 +91,20 @@ typedef struct {
 #define JPEG_DRV_ENC_NV12                     (0x02 << 3)
 #define JPEG_DRV_ENC_NV21                     (0x03 << 3)
 
-
+#define JPEG_MSG pr_debug
+#define JPEG_WRN pr_warn
+#define JPEG_ERR pr_err
+#define JPEG_VEB pr_err
 /* /////// JPEG Driver Decoder /////// */
 /*  */
 /*  */
+#ifdef JPEG_DEC_DRIVER
+extern kal_uint32 _jpeg_dec_int_status;
+extern kal_uint32 _jpeg_dec_mode;
+
+int jpeg_isr_dec_lisr(void);
+const long jpeg_dev_get_decoder_base_VA(void);
+
 int jpeg_drv_dec_set_config_data(JPEG_DEC_DRV_IN *config);
 void jpeg_drv_dec_set_dst_bank0(unsigned int addr_Y, unsigned int addr_U, unsigned int addr_V);
 void jpeg_drv_dec_reset(void);
@@ -116,13 +114,34 @@ int jpeg_drv_dec_wait(JPEG_DEC_DRV_IN *config);
 void jpeg_drv_dec_dump_key_reg(void);
 void jpeg_drv_dec_dump_reg(void);
 int jpeg_drv_dec_break(void);
-
 void jpeg_drv_dec_set_pause_mcu_idx(unsigned int McuIdx);
 void jpeg_drv_dec_resume(unsigned int resume);
-
 kal_uint32 jpeg_drv_dec_get_result(void);
+void jpeg_drv_dec_power_on(void);
+void jpeg_drv_dec_power_off(void);
+#endif
 
+typedef struct JpegDeviceStruct {
 
+	struct device *pDev;
+	long encRegBaseVA;	/* considering 64 bit kernel, use long */
+	long decRegBaseVA;
+	uint32_t encIrqId;
+	uint32_t decIrqId;
+
+} JpegDeviceStruct;
+
+typedef struct JpegClk {
+	struct clk *clk_disp_mtcmos;
+	struct clk *clk_venc_mtcmos;
+	struct clk *clk_disp_smi;
+	struct clk *clk_venc_larb;
+	struct clk *clk_venc_jpgEnc;
+	struct clk *clk_venc_jpgDec;
+	struct clk *clk_venc_jpgDec_Smi;
+} JpegClk;
+
+const long jpeg_dev_get_encoder_base_VA(void);
 /* ///// JPEG Driver Encoder /////// */
 
 kal_uint32 jpeg_drv_enc_src_cfg(JpegDrvEncSrcCfg srcCfg);
@@ -158,7 +177,6 @@ kal_uint32 jpeg_drv_enc_rw_reg(void);
 
 
 int jpeg_isr_enc_lisr(void);
-int jpeg_isr_dec_lisr(void);
 
 
 kal_uint32 jpeg_drv_enc_set_src_image(kal_uint32 width, kal_uint32 height, kal_uint32 yuv_format,
