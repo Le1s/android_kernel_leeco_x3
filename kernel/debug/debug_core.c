@@ -676,7 +676,7 @@ kgdb_restore:
 		do { *(volatile int *)0 = 0; } while (1);
 	}
 	#endif
-		
+
 	return kgdb_info[cpu].ret_state;
 }
 

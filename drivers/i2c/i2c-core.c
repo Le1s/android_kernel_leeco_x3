@@ -1593,6 +1593,7 @@ int i2c_master_send(const struct i2c_client *client, const char *buf, int count)
 	msg.timing = client->timing;
 	msg.ext_flag = client->ext_flag;
 	#endif
+
 	ret = i2c_transfer(adap, &msg, 1);
 
 	/*
@@ -1626,6 +1627,7 @@ int i2c_master_recv(const struct i2c_client *client, char *buf, int count)
 	msg.timing = client->timing;
 	msg.ext_flag = client->ext_flag;
 	#endif
+
 	ret = i2c_transfer(adap, &msg, 1);
 
 	/*
@@ -1644,7 +1646,7 @@ EXPORT_SYMBOL(i2c_master_recv);
  * @buf: Data that will be written to the slave
  * @count: How many bytes to write, must be less than 64k since msg.len is u16
  * @ext_flag: Controller special flags, for example, if you want using DMA, ext_flag |= I2C_DMA_FLAG.
- * 			is the same to client->ext_flag 
+ * 			is the same to client->ext_flag
  *
  * Returns negative errno, or else the number of bytes written.
  */
@@ -1676,7 +1678,7 @@ EXPORT_SYMBOL(mt_i2c_master_send);
  * @buf: Where to store data read from slave
  * @count: How many bytes to read, must be less than 64k since msg.len is u16
  * @ext_flag: Controller special flags, for example, if you want using DMA, ext_flag |= I2C_DMA_FLAG.
- * 			is the same to client->ext_flag 
+ * 			is the same to client->ext_flag
  *
  * Returns negative errno, or else the number of bytes read.
  */

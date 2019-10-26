@@ -764,11 +764,7 @@ out:
  * If that doesn't work out then we put the old page into the bio and add this
  * page to the dio instead.
  */
-#ifdef CONFIG_MTK_GMO_RAM_OPTIMIZE
-static int
-#else
 static inline int
-#endif
 submit_page_section(struct dio *dio, struct dio_submit *sdio, struct page *page,
 		    unsigned offset, unsigned len, sector_t blocknr,
 		    struct buffer_head *map_bh)

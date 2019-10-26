@@ -330,7 +330,7 @@ static void __init map_mem(void)
 		MTK_MEMCFG_LOG_AND_PRINTK(KERN_ALERT
 			"[PHY layout]kernel   :   "
 			"0x%08llx - 0x%08llx (0x%llx)\n",
-			(unsigned long long)start, 
+			(unsigned long long)start,
 			(unsigned long long)start + reg->size - 1,
 			(unsigned long long)reg->size);
 

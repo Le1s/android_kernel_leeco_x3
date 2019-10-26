@@ -10,7 +10,6 @@
 #include <linux/fs.h>
 #include <linux/buffer_head.h>
 #include <linux/time.h>
-#include <linux/blkdev.h>
 #include "fat.h"
 
 /*
@@ -275,9 +274,7 @@ int fat_sync_bhs(struct buffer_head **bhs, int nr_bhs)
 	int i, err = 0;
 
 	for (i = 0; i < nr_bhs; i++)
-	{
 		write_dirty_buffer(bhs[i], WRITE);
-	}
 
 	for (i = 0; i < nr_bhs; i++) {
 		wait_on_buffer(bhs[i]);

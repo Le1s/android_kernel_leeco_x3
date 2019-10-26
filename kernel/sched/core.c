@@ -86,11 +86,6 @@
 #include "../workqueue_internal.h"
 #include "../smpboot.h"
 
-#ifdef CONFIG_MT65XX_TRACER
-#include "mach/mt_mon.h"
-#include "linux/aee.h"
-#endif
-
 #include "mt_sched_mon.h"
 #define CREATE_TRACE_POINTS
 #include <trace/events/sched.h>
@@ -667,18 +662,18 @@ static inline bool got_nohz_idle_kick(void)
 #ifdef CONFIG_NO_HZ_FULL
 bool sched_can_stop_tick(void)
 {
-	struct rq *rq;
+       struct rq *rq;
 
-	rq = this_rq();
+       rq = this_rq();
 
-	/* Make sure rq->nr_running update is visible after the IPI */
-	smp_rmb();
+       /* Make sure rq->nr_running update is visible after the IPI */
+       smp_rmb();
 
-	/* More than one running task need preemption */
-	if (rq->nr_running > 1)
-		return false;
+       /* More than one running task need preemption */
+       if (rq->nr_running > 1)
+               return false;
 
-	return true;
+       return true;
 }
 #endif /* CONFIG_NO_HZ_FULL */
 
@@ -786,16 +781,6 @@ static void sched_tg_enqueue(struct rq *rq, struct task_struct *p)
 	tg->thread_group_info[id].nr_running++;
 	raw_spin_unlock_irqrestore(&tg->thread_group_info_lock, flags);
 
-#if 0
-	mt_sched_printf("enqueue %d:%s %d:%s %d %lu %lu %lu, %lu %lu %lu",
-			tg->pid, tg->comm, p->pid, p->comm, id, rq->cpu,
-			tg->thread_group_info[0].nr_running,
-			tg->thread_group_info[0].cfs_nr_running,
-			tg->thread_group_info[0].load_avg_ratio,
-			tg->thread_group_info[1].nr_running,
-			tg->thread_group_info[1].cfs_nr_running,
-			tg->thread_group_info[1].load_avg_ratio);
-#endif
 	/* tgs_log(rq, p); */
 }
 
@@ -815,18 +800,6 @@ static void sched_tg_dequeue(struct rq *rq, struct task_struct *p)
 	/* WARN_ON(!tg->thread_group_info[id].nr_running); */
 	tg->thread_group_info[id].nr_running--;
 	raw_spin_unlock_irqrestore(&tg->thread_group_info_lock, flags);
-
-#if 0
-	mt_sched_printf("dequeue %d:%s %d:%s %d %d %lu %lu %lu, %lu %lu %lu",
-			tg->pid, tg->comm, p->pid, p->comm, id, rq->cpu,
-			tg->thread_group_info[0].nr_running,
-			tg->thread_group_info[0].cfs_nr_running,
-			tg->thread_group_info[0].load_avg_ratio,
-			tg->thread_group_info[1].nr_running,
-			tg->thread_group_info[1].cfs_nr_running,
-			tg->thread_group_info[1].load_avg_ratio);
-#endif
-	/* tgs_log(rq, p); */
 }
 
 #endif
@@ -1219,7 +1192,7 @@ unsigned long wait_task_inactive(struct task_struct *p, long match_state)
 		on_rq = p->on_rq;
 		ncsw = 0;
 		if (!match_state || p->state == match_state)
-			ncsw = p->nvcsw | LONG_MIN;	/* sets MSB */
+			ncsw = p->nvcsw | LONG_MIN; /* sets MSB */
 		task_rq_unlock(rq, p, &flags);
 
 		/*
@@ -2186,10 +2159,6 @@ context_switch(struct rq *rq, struct task_struct *prev,
 
 	prepare_task_switch(rq, prev, next);
 
-#ifdef CONFIG_MT65XX_TRACER
-	if (get_mt65xx_mon_mode() == MODE_SCHED_SWITCH)
-		trace_mt65xx_mon_sched_switch(prev, next);
-#endif
 	mm = next->mm;
 	oldmm = prev->active_mm;
 	/*

@@ -112,9 +112,9 @@ static void cpu_idle_loop(void)
 					WARN_ON_ONCE(irqs_disabled());
 					rcu_idle_exit();
 					start_critical_timings();
-#ifdef CONFIG_MT_LOAD_BALANCE_PROFILER				
+#ifdef CONFIG_MT_LOAD_BALANCE_PROFILER
 					mt_lbprof_update_state(smp_processor_id(), MT_LBPROF_NO_TASK_STATE);
-#endif				
+#endif
 				} else {
 					local_irq_enable();
 				}

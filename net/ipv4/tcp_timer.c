@@ -421,12 +421,6 @@ void tcp_retransmit_timer(struct sock *sk)
 		NET_INC_STATS_BH(sock_net(sk), mib_idx);
 	}
 
-	if (icsk->icsk_MMSRB == 1)
-	{
-	    	#ifdef CONFIG_MTK_NET_LOGGING  
-	        printk(KERN_DEBUG "[mtk_net][mmspb] tcp_retransmit_timer enter loss\n");
-	        #endif
-	}
 	tcp_enter_loss(sk, 0);
 
 	if (tcp_retransmit_skb(sk, tcp_write_queue_head(sk)) > 0) {
@@ -494,13 +488,14 @@ void tcp_write_timer_handler(struct sock *sk)
 	if (((1 << sk->sk_state) & (TCPF_CLOSE | TCPF_LISTEN)) ||
 	    !icsk->icsk_pending)
 		goto out;
-  if (icsk->icsk_MMSRB != 1)
-  {
+
+	if (icsk->icsk_MMSRB != 1) {
 	if (time_after(icsk->icsk_timeout, jiffies)) {
 		sk_reset_timer(sk, &icsk->icsk_retransmit_timer, icsk->icsk_timeout);
 		goto out;
 	}
-  }
+	}
+
 	event = icsk->icsk_pending;
 
 	switch (event) {
@@ -532,10 +527,6 @@ static void tcp_write_timer(unsigned long data)
 	if (!sock_owned_by_user(sk)) {
 		tcp_write_timer_handler(sk);
 	} else {
-
-		//if (icsk->icsk_MMSRB == 1)
-		//printk("[mmspb] tcp_write_timer user owner sock\n");
-
 		/* deleguate our work to tcp_release_cb() */
 		if (!test_and_set_bit(TCP_WRITE_TIMER_DEFERRED, &tcp_sk(sk)->tsq_flags))
 			sock_hold(sk);

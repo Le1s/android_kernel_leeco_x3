@@ -848,12 +848,10 @@ static long snd_compr_ioctl(struct file *f, unsigned int cmd, unsigned long arg)
 	return retval;
 }
 
-
 /*
  * ioctl32 compat
  */
 #ifdef CONFIG_COMPAT
-
 static long snd_compr_ioctl_compat(struct file *file, unsigned int cmd, unsigned long arg)
 {
 	switch (_IOC_NR(cmd)) {
@@ -873,15 +871,12 @@ static long snd_compr_ioctl_compat(struct file *file, unsigned int cmd, unsigned
 	case _IOC_NR(SNDRV_COMPRESS_DRAIN):
 	case _IOC_NR(SNDRV_COMPRESS_PARTIAL_DRAIN):
 	case _IOC_NR(SNDRV_COMPRESS_NEXT_TRACK):
-        return file->f_op->unlocked_ioctl(file, cmd,arg);
-		break;
-
+		return file->f_op->unlocked_ioctl(file, cmd,arg);
 	}
-
+	return 0l;
 }
-
 #else
-#define snd_compr_ioctl_compat   NULL
+#define snd_compr_ioctl_compat	NULL
 #endif
 
 static const struct file_operations snd_compr_file_ops = {
@@ -891,7 +886,7 @@ static const struct file_operations snd_compr_file_ops = {
 		.write =	snd_compr_write,
 		.read =		snd_compr_read,
 		.unlocked_ioctl = snd_compr_ioctl,
-        .compat_ioctl = 	snd_compr_ioctl_compat,
+		.compat_ioctl = 	snd_compr_ioctl_compat,
 		.mmap =		snd_compr_mmap,
 		.poll =		snd_compr_poll,
 };

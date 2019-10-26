@@ -22,7 +22,6 @@
 			cpu-release-addr = <0x0 0x40000200>;
 			clock-frequency = <2000000000>;
 		};
-
 		cpu1: cpu@1 {
 			device_type = "cpu";
 			compatible = "arm,cortex-a53";
@@ -31,7 +30,6 @@
 			cpu-release-addr = <0x0 0x40000200>;
 			clock-frequency = <2000000000>;
 		};
-
 		cpu2: cpu@2 {
 			device_type = "cpu";
 			compatible = "arm,cortex-a53";
@@ -40,7 +38,6 @@
 			cpu-release-addr = <0x0 0x40000200>;
 			clock-frequency = <2000000000>;
 		};
-
 		cpu3: cpu@3 {
 			device_type = "cpu";
 			compatible = "arm,cortex-a53";
@@ -49,7 +46,6 @@
 			cpu-release-addr = <0x0 0x40000200>;
 			clock-frequency = <2000000000>;
 		};
-
 		cpu4: cpu@4 {
 			device_type = "cpu";
 			compatible = "arm,cortex-a53";
@@ -58,7 +54,6 @@
 			cpu-release-addr = <0x0 0x40000200>;
 			clock-frequency = <2000000000>;
 		};
-
 		cpu5: cpu@5 {
 			device_type = "cpu";
 			compatible = "arm,cortex-a53";
@@ -67,7 +62,6 @@
 			cpu-release-addr = <0x0 0x40000200>;
 			clock-frequency = <2000000000>;
 		};
-
 		cpu6: cpu@6 {
 			device_type = "cpu";
 			compatible = "arm,cortex-a53";
@@ -76,7 +70,6 @@
 			cpu-release-addr = <0x0 0x40000200>;
 			clock-frequency = <2000000000>;
 		};
-
 		cpu7: cpu@7 {
 			device_type = "cpu";
 			compatible = "arm,cortex-a53";
@@ -84,9 +77,7 @@
 			enable-method = "mt-boot";
 			cpu-release-addr = <0x0 0x40000200>;
 			clock-frequency = <2000000000>;
-
 		};
-
 	};
 
 	memory@00000000 {
@@ -97,24 +88,20 @@
 	bus {
 		I2C2@0x11009000 {
 		bq25890@6A{
-		    compatible = "ti,bq2589x-1";
-		    reg = <0x6A>;
-		    ti,bq2589x,vbus-volt-high-level = <8700>;/* tune adapter to output 9v */
-		    ti,bq2589x,vbus-volt-low-level = <4400>;/* tune adapter to output 5v */
-		    ti,bq2589x,vbat-min-volt-to-tuneup = <3000>;
-	 
+			compatible = "ti,bq2589x-1";
+			reg = <0x6A>;
+			ti,bq2589x,vbus-volt-high-level = <8700>;/* tune adapter to output 9v */
+			ti,bq2589x,vbus-volt-low-level = <4400>;/* tune adapter to output 5v */
+			ti,bq2589x,vbat-min-volt-to-tuneup = <3000>;
 		};
-
 		bq25892@6B{
-		    compatible = "ti,bq2589x-2";
-		    reg = <0x6B>;
-	      };
-
+			compatible = "ti,bq2589x-2";
+			reg = <0x6B>;
+		};
 		synaptics-tpd@4b{
-                    compatible = "synaptics,synaptics-tpd";
-                    reg = <0x4B>;
-              };
-
+			compatible = "synaptics,synaptics-tpd";
+			reg = <0x4B>;
+		};
 		atmel_mxt_ts@4a{
 			compatible = "atmel,atmel_mxt_ts";
 			reg = <0x4a>;
@@ -354,8 +341,8 @@
 					00 7C 00 00 00 07 0B 10 00 00 1B 41 64
 					00 7D 00 00 00 01 00
 					];
-                };
-            };
-	  };
+				};
+			};
+		};
 	};
 };

@@ -51,4 +51,3 @@ void RefineInterrruptInterval(void);
 bool Auddrv_Set_DlSamplerate(unsigned int Samplerate);
 bool Auddrv_Set_InterruptSample(unsigned int count);
 bool Auddrv_Enable_dump(bool bEnable);
-

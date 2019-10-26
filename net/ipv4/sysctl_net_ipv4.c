@@ -305,7 +305,7 @@ static struct ctl_table ipv4_table[] = {
 		.data = &sysctl_tcp_rto_max,
 		.maxlen = sizeof(int),
 		.mode = 0644,
-    	.proc_handler = proc_dointvec_ms_jiffies,
+		.proc_handler = proc_dointvec_ms_jiffies,
 	},
 	{
 		.procname	= "tcp_timestamps",

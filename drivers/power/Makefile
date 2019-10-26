@@ -56,7 +56,4 @@ obj-$(CONFIG_POWER_AVS)		+= avs/
 obj-$(CONFIG_CHARGER_SMB347)	+= smb347-charger.o
 obj-$(CONFIG_CHARGER_TPS65090)	+= tps65090-charger.o
 obj-$(CONFIG_CHARGER_BQ2589X)	+= bq2589x_dual.o
-ifneq ($(findstring india,$(TARGET_CARRIER)),)
-EXTRA_CFLAGS += -DLEECO_INDIA_CHARGE_LIMIT
-endif
 obj-$(CONFIG_POWER_RESET)	+= reset/

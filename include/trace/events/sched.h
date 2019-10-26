@@ -8,10 +8,6 @@
 #include <linux/tracepoint.h>
 #include <linux/binfmts.h>
 
-#ifdef CONFIG_MT65XX_TRACER
-#include <trace/events/mt65xx_mon_trace.h>
-#endif
-
 #ifdef CONFIG_MET_SCHED_HMP
 void TaskTh(unsigned int B_th,unsigned int L_th);
 void HmpStat(struct hmp_statisic *hmp_stats);

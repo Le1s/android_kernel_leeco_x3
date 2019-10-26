@@ -199,7 +199,7 @@ static struct ipv6_devconf ipv6_devconf __read_mostly = {
 	.forwarding		= 0,
 	.hop_limit		= IPV6_DEFAULT_HOPLIMIT,
 	.mtu6			= IPV6_MIN_MTU,
-	.accept_ra		= 1,	
+	.accept_ra		= 1,
 	.accept_redirects	= 1,
 	.autoconf		= 1,
 	.force_mld_version	= 0,
@@ -218,9 +218,9 @@ static struct ipv6_devconf ipv6_devconf __read_mostly = {
 	.max_addresses		= IPV6_MAX_ADDRESSES,
 	.accept_ra_defrtr	= 1,
 	.accept_ra_pinfo	= 1,
-#ifdef CONFIG_MTK_DHCPV6C_WIFI	
+#ifdef CONFIG_MTK_DHCPV6C_WIFI
 	.ra_info_flag		= 0,
-#endif		
+#endif
 #ifdef CONFIG_IPV6_ROUTER_PREF
 	.accept_ra_rtr_pref	= 1,
 	.rtr_probe_interval	= 60 * HZ,
@@ -259,9 +259,9 @@ static struct ipv6_devconf ipv6_devconf_dflt __read_mostly = {
 	.max_addresses		= IPV6_MAX_ADDRESSES,
 	.accept_ra_defrtr	= 1,
 	.accept_ra_pinfo	= 1,
-#ifdef CONFIG_MTK_DHCPV6C_WIFI	
+#ifdef CONFIG_MTK_DHCPV6C_WIFI
 	.ra_info_flag		= 0,
-#endif	
+#endif
 #ifdef CONFIG_IPV6_ROUTER_PREF
 	.accept_ra_rtr_pref	= 1,
 	.rtr_probe_interval	= 60 * HZ,
@@ -795,10 +795,9 @@ static int addrconf_fixup_forwarding(struct ctl_table *table, int *p, int newf)
 	} else if ((!newf) ^ (!old))
 		dev_forward_change((struct inet6_dev *)table->extra1);
 	rtnl_unlock();
-	
+
 	if (newf)
 		rt6_purge_dflt_routers(net);
-
 	return 1;
 }
 #endif
@@ -1925,26 +1924,26 @@ static int addrconf_ifid_gre(u8 *eui, struct net_device *dev)
 
 static int ipv6_generate_eui64(u8 *eui, struct net_device *dev)
 {
-    /* MTK_NET_CHANGES */
-    if (strncmp(dev->name, "ccmni", 2) == 0)
-        return -1;
- 		
+	/* MTK_NET_CHANGES */
+	if (strncmp(dev->name, "ccmni", 2) == 0)
+		return -1;
+
 	switch (dev->type) {
-		case ARPHRD_ETHER:
-		case ARPHRD_FDDI:
-			return addrconf_ifid_eui48(eui, dev);
-		case ARPHRD_ARCNET:
-			return addrconf_ifid_arcnet(eui, dev);
-		case ARPHRD_INFINIBAND:
-			return addrconf_ifid_infiniband(eui, dev);
-		case ARPHRD_SIT:
-			return addrconf_ifid_sit(eui, dev);
-		case ARPHRD_IPGRE:
-			return addrconf_ifid_gre(eui, dev);
-		case ARPHRD_IEEE802154:
-			return addrconf_ifid_eui64(eui, dev);
-		case ARPHRD_IEEE1394:
-			return addrconf_ifid_ieee1394(eui, dev);
+	case ARPHRD_ETHER:
+	case ARPHRD_FDDI:
+		return addrconf_ifid_eui48(eui, dev);
+	case ARPHRD_ARCNET:
+		return addrconf_ifid_arcnet(eui, dev);
+	case ARPHRD_INFINIBAND:
+		return addrconf_ifid_infiniband(eui, dev);
+	case ARPHRD_SIT:
+		return addrconf_ifid_sit(eui, dev);
+	case ARPHRD_IPGRE:
+		return addrconf_ifid_gre(eui, dev);
+	case ARPHRD_IEEE802154:
+		return addrconf_ifid_eui64(eui, dev);
+	case ARPHRD_IEEE1394:
+		return addrconf_ifid_ieee1394(eui, dev);
 	}
 	return -1;
 }
@@ -3317,7 +3316,7 @@ static void addrconf_rs_timer(unsigned long data)
 		 * Note: we do not support deprecated "all on-link"
 		 * assumption any longer.
 		 */
-		printk("%s: no IPv6 routers present\n", idev->dev->name);
+		pr_debug("%s: no IPv6 routers present\n", idev->dev->name);
 	}
 
 out:
@@ -4846,12 +4845,10 @@ static void ipv6_ifa_notify(int event, struct inet6_ifaddr *ifp)
 	rcu_read_unlock_bh();
 }
 
-
 //mtk07384: send no ra netlink msg
 static void inet6_no_ra_notify(int event, struct inet6_dev *idev)
-			
-{  
-    struct sk_buff *skb;
+{
+	struct sk_buff *skb;
 	struct net *net = dev_net(idev->dev);
 	int err = -ENOBUFS;
 	size_t length = NLMSG_ALIGN(sizeof(struct ifinfomsg));
@@ -4873,23 +4870,23 @@ static void inet6_no_ra_notify(int event, struct inet6_dev *idev)
 errout:
 	if (err < 0)
 		rtnl_set_sk_err(net, RTNLGRP_IPV6_PREFIX, err);
-   
 }
+
 //mtk07384: fill skb for  no ra  msg
 static int inet6_fill_nora(struct sk_buff *skb, struct inet6_dev *idev,
-			      u32 portid, u32 seq,int event, unsigned int flags)
+						   u32 portid, u32 seq,int event, unsigned int flags)
 {
-    struct net_device *dev = idev->dev;
+	struct net_device *dev = idev->dev;
 	struct nlmsghdr *nlh;
 	struct ifinfomsg *hdr;
 	void *protoinfo;
 	char *name;
-	
+
 	nlh = nlmsg_put(skb, portid, seq, event, sizeof(*hdr), flags);
 	if (nlh == NULL)
 		return -EMSGSIZE;
 
-    hdr = nlmsg_data(nlh);
+	hdr = nlmsg_data(nlh);
 	hdr->ifi_family = AF_INET6;
 	hdr->__ifi_pad = 0;
 	hdr->ifi_type = dev->type;

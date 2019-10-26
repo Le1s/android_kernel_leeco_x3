@@ -101,10 +101,10 @@ ssize_t part_emmcsize_show(struct device *dev,
 		  emmcsize = 32;
 	else if (emmcsize <= 64)
 		  emmcsize = 64;
-	else 
+	else
 		  emmcsize = 128;
 	return sprintf(buf, "%dG\n", (int)emmcsize);
-	
+
 	//return sprintf(buf, "%llu\n",(unsigned long long)part_nr_sects_read(p));
 }
 

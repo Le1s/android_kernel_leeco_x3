@@ -63,7 +63,7 @@ static void try_to_suspend(struct work_struct *work)
 
 	if (autosleep_state == PM_SUSPEND_ON) {
 #ifdef CONFIG_MTK_HIBERNATION
-        system_is_hibernating = false;
+		system_is_hibernating = false;
 #endif
 		//<20130327> <marc.huang> add autosleep dubug log
 		autosleep_warn("abort due to autosleep_state: %d\n", autosleep_state);
@@ -71,29 +71,29 @@ static void try_to_suspend(struct work_struct *work)
 		return;
 	}
 #ifdef CONFIG_MTK_HIBERNATION
-    if (autosleep_state >= PM_SUSPEND_MAX) {
-        mtk_hibernate_via_autosleep(&autosleep_state);
-    }
-    else {
-        hib_autoslp_log("pm_suspend: state(%d)\n", autosleep_state);
-        if (!system_is_hibernating) {
-            hib_autoslp_warn("calling pm_suspend() state(%d)\n", autosleep_state);
-            pm_suspend(autosleep_state);
-        }
-        else {
-            hib_autoslp_warn("system is hibernating: so changing state(%d->%d)\n",  autosleep_state, PM_SUSPEND_MAX);
-            autosleep_state = PM_SUSPEND_MAX;
-        }
-    }
+	if (autosleep_state >= PM_SUSPEND_MAX) {
+		mtk_hibernate_via_autosleep(&autosleep_state);
+	}
+	else {
+		hib_autoslp_log("pm_suspend: state(%d)\n", autosleep_state);
+		if (!system_is_hibernating) {
+			hib_autoslp_warn("calling pm_suspend() state(%d)\n", autosleep_state);
+			pm_suspend(autosleep_state);
+		}
+		else {
+			hib_autoslp_warn("system is hibernating: so changing state(%d->%d)\n",  autosleep_state, PM_SUSPEND_MAX);
+			autosleep_state = PM_SUSPEND_MAX;
+		}
+	}
 #else // !CONFIG_MTK_HIBERNATION
 	if (autosleep_state >= PM_SUSPEND_MAX)
 		hibernate();
 	else
-        {
+	{
 		//<20130327> <marc.huang> add autosleep dubug log
 		autosleep_log("pm_suspend, autosleep_state: %d\n", autosleep_state);
 		pm_suspend(autosleep_state);
-        }
+	}
 #endif // CONFIG_MTK_HIBERNATION
 	mutex_unlock(&autosleep_lock);
 
@@ -118,11 +118,11 @@ static DECLARE_WORK(suspend_work, try_to_suspend);
 void queue_up_suspend_work(void)
 {
 	if (autosleep_state > PM_SUSPEND_ON)
-        {
+	{
 		//<20130327> <marc.huang> add autosleep dubug log
 		autosleep_log("autosleep_state: %d\n", autosleep_state);
 		queue_work(autosleep_wq, &suspend_work);
-        }
+	}
 }
 
 suspend_state_t pm_autosleep_state(void)

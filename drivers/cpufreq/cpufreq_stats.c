@@ -431,8 +431,8 @@ static int cpufreq_stats_create_table(struct cpufreq_policy *policy,
 	stat->last_index = freq_table_get_index(stat, policy->cur);
 	spin_unlock(&cpufreq_stats_lock);
 
-    // Assign stat after stat's frequency table is initialized.
-    per_cpu(cpufreq_stats_table, cpu) = stat;
+	// Assign stat after stat's frequency table is initialized.
+	per_cpu(cpufreq_stats_table, cpu) = stat;
 
 	cpufreq_cpu_put(data);
 	return 0;

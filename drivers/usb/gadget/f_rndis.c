@@ -513,7 +513,7 @@ static void rndis_command_complete(struct usb_ep *ep, struct usb_request *req)
 			rndis->port.dl_max_transfer_len = buf->MaxTransferSize;
 		}else{
 			rndis->port.multi_pkt_xfer = 0;
-		}		
+		}
 		DBG(cdev, "%s: MaxTransferSize: %d : Multi_pkt_txr: %s\n",
 				__func__, buf->MaxTransferSize,
 				rndis->port.multi_pkt_xfer ? "enabled" :

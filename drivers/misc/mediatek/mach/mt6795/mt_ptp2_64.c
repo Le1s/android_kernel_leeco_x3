@@ -431,7 +431,7 @@ void enable_LO(void)
 	}
 
 	for(i=0; i<PTP2_REG_NUM; i++){
-		ptp2_warn("\n\n\n\n\n[I-Chang]*********************************[%d]=[%x] \n\n\n\n\n", i, ptp2_read(PTP2_CTRL_REG_0 + (i << 2)));
+		ptp2_warn("[I-Chang]*********************************[%d]=[%x]\n", i, ptp2_read(PTP2_CTRL_REG_0 + (i << 2)));
 	}
 }
 

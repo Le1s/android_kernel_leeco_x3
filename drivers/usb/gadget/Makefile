@@ -1,8 +1,6 @@
 #
 # USB peripheral controller drivers
 #
-KBUILD_CFLAGS += -w
-KBUILD_CFLAGS += -Wno-error=unused-but-set-variable
 ccflags-$(CONFIG_USB_GADGET_DEBUG) := -DDEBUG
 include $(srctree)/drivers/misc/mediatek/Makefile.custom
 
@@ -48,8 +46,6 @@ usb_f_serial-y			:= f_serial.o
 obj-$(CONFIG_USB_F_SERIAL)	+= usb_f_serial.o
 usb_f_obex-y			:= f_obex.o
 obj-$(CONFIG_USB_F_OBEX)	+= usb_f_obex.o
-usb_f_loopback-y		:= f_loopback.o
-obj-$(CONFIG_USB_F_LOOPBACK)	+= usb_f_loopback.o
 
 #
 # USB gadget drivers
@@ -70,7 +66,7 @@ g_nokia-y			:= nokia.o
 g_webcam-y			:= webcam.o
 g_ncm-y				:= ncm.o
 g_acm_ms-y			:= acm_ms.o
-g_android-y			:= android.o f_hid.o
+g_android-y			:= android.o
 g_tcm_usb_gadget-y		:= tcm_usb_gadget.o
 
 obj-$(CONFIG_USB_ZERO)		+= g_zero.o

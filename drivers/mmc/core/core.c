@@ -493,14 +493,6 @@ static int mmc_wait_for_data_req_done(struct mmc_host *host,
 static void mmc_wait_for_req_done(struct mmc_host *host,
 				  struct mmc_request *mrq)
 {
-#if 0
-    struct scatterlist *sg;
-    unsigned int  num;
-    unsigned int  left;
-    unsigned int  *ptr;
-    unsigned int  i;
-#endif
-
 	struct mmc_command *cmd;
 
 	while (1) {
@@ -510,41 +502,10 @@ static void mmc_wait_for_req_done(struct mmc_host *host,
 				host->ops->dma_error_reset(host);
 				}
 
-            if(mrq->data)
-                mrq->data->error = (unsigned int)-ETIMEDOUT;
-
-
-            printk(KERN_ERR "MSDC wait request timeout DAT<%d>\n",(mrq->data->blocks) * (mrq->data->blksz));
-        }
-
-#if 0
-    if ((mrq->cmd->arg == 0) && (mrq->data) && 
-            ((mrq->cmd->opcode == 17)||(mrq->cmd->opcode == 18))){ 
-        printk("read MBR  cmd%d: blocks %d arg %08x, sg_len = %d\n", mrq->cmd->opcode, mrq->data->blocks, mrq->cmd->arg, mrq->data->sg_len);
-            sg = mrq->data->sg;
-            num = mrq->data->sg_len;
-
-            while (num) {
-                left = sg_dma_len(sg);
-                ptr = sg_virt(sg);
-
-                printk("====left: %d\n===\n", left);
-                for (i = 0; i <= left/4; i++){
-                    printk("0x%x ", *(ptr + i));
-                    if (0 == (i + 1)%16)
-                        printk("\n");
-                }
-
-                //page = sg_to_page(sg);
-
-                /* physic addr */
-                //paddr = page_to_phys(page);
-
-                sg = sg_next(sg); 
-                num--;
-            }; 
-    }
-#endif
+			if(mrq->data)
+				mrq->data->error = (unsigned int)-ETIMEDOUT;
+			printk(KERN_ERR "MSDC wait request timeout DAT<%d>\n",(mrq->data->blocks) * (mrq->data->blksz));
+		}
 
 		cmd = mrq->cmd;
 		if (!cmd->error || !cmd->retries ||
@@ -754,8 +715,8 @@ int mmc_interrupt_hpi_delay(struct mmc_card *card, u32 delay)
 		return 1;
 	}
 
-	mmc_claim_host(card->host);	
-		
+	mmc_claim_host(card->host);
+
 	do {
 		err = mmc_send_status(card, &status);
 		if (err) {
@@ -777,7 +738,7 @@ int mmc_interrupt_hpi_delay(struct mmc_card *card, u32 delay)
 		 * In idle and transfer states, HPI is not needed and the caller
 		 * can issue the next intended command immediately
 		 */
-		pr_err("[%s]: %s: card release busy status before stopping by HPI, wait %dms\n", __func__, mmc_hostname(card->host), delay_count); 
+		pr_err("[%s]: %s: card release busy status before stopping by HPI, wait %dms\n", __func__, mmc_hostname(card->host), delay_count);
 		goto out;
 	case R1_STATE_PRG:
 		pr_err("[%s]: %s: do HPI to stop flush ops, wait %dms.\n", __func__, mmc_hostname(card->host), delay_count);
@@ -811,7 +772,7 @@ out:
 
 int mmc_interrupt_hpi(struct mmc_card *card)
 {
-	return mmc_interrupt_hpi_delay(card, 0); 
+	return mmc_interrupt_hpi_delay(card, 0);
 }
 
 #else
@@ -910,13 +871,13 @@ void mmc_start_flush(struct mmc_card *card)
 
 	//printk("[%s]: mmc_start_flush_doing.\n", __func__);
 	mmc_card_set_doing_flush(card);
-	err = mmc_flush_cache(card); 
+	err = mmc_flush_cache(card);
 	if (err) {
 		pr_warn("%s: Error %d starting flush ops\n",
 			mmc_hostname(card->host), err);
 		goto out;
 	}
-		
+
 out:
 	mmc_release_host(card->host);
 }
@@ -1872,14 +1833,14 @@ void mmc_power_off(struct mmc_host *host)
 
 	host->ios.clock = 0;
 	host->ios.vdd = 0;
-	
+
 #ifdef CONFIG_MTK_EMMC_CACHE
-    if (host->card && (mmc_card_mmc(host->card)) && (host->card->ext_csd.cache_ctrl & 0x1)) {
-        if (mmc_flush_cache(host->card)) {
-            pr_err("%s: failed to disable cache\n", mmc_hostname(host));
-            return ;
-        }
-    }
+	if (host->card && (mmc_card_mmc(host->card)) && (host->card->ext_csd.cache_ctrl & 0x1)) {
+		if (mmc_flush_cache(host->card)) {
+			pr_err("%s: failed to disable cache\n", mmc_hostname(host));
+			return ;
+		}
+	}
 #endif
 
 	/*
@@ -2413,7 +2374,7 @@ int mmc_can_trim(struct mmc_card *card)
 		!(card->quirks & MMC_QUIRK_TRIM_UNSTABLE) &&
 		!(card->quirks & MMC_QUIRK_KSI_V03_SKIP_TRIM))
 		return 1;
-	//printk(KERN_ERR "[%s]: quirks=0x%x, MMC_QUIRK_TRIM_UNSTABLE=0x%x\n", __func__, card->quirks, MMC_QUIRK_TRIM_UNSTABLE); 
+	//printk(KERN_ERR "[%s]: quirks=0x%x, MMC_QUIRK_TRIM_UNSTABLE=0x%x\n", __func__, card->quirks, MMC_QUIRK_TRIM_UNSTABLE);
 	//printk(KERN_ERR "[%s]: quirks=0x%x, MMC_QUIRK_KSI_V03_SKIP_TRIM=0x%x\n", __func__, card->quirks, MMC_QUIRK_KSI_V03_SKIP_TRIM);
 	return 0;
 }

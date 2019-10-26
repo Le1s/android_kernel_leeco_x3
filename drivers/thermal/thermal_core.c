@@ -1784,7 +1784,7 @@ void thermal_zone_device_unregister(struct thermal_zone_device *tz)
 
 	mutex_unlock(&thermal_list_lock);
 
-    //mutex_lock(&tz->lock); // avoid destroy a locked mutex
+	//mutex_lock(&tz->lock); // avoid destroy a locked mutex
 	//thermal_zone_device_set_polling(tz, 0);
 
 	if (tz->type[0])
