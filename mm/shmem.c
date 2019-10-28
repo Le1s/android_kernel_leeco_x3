@@ -1947,7 +1947,7 @@ restart:
  * to those pages to avoid races.
  */
 
-{static int shmem_wait_for_pins(struct address_space *mapping)
+static int shmem_wait_for_pins(struct address_space *mapping)
 {
 	struct radix_tree_iter iter;
 	void **slot;
@@ -2977,7 +2977,7 @@ SYSCALL_DEFINE2(memfd_create,
 		goto err_name;
 	}
 
-	file = shmem_file_setup(name, 0, VM_NORESERVE);
+	file = shmem_file_setup(name, 0, VM_NORESERVE, 0);
 	if (IS_ERR(file)) {
 		error = PTR_ERR(file);
 		goto err_fd;
