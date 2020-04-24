@@ -473,6 +473,26 @@ static int Audio_Mode_Set(struct snd_kcontrol *kcontrol, struct snd_ctl_elem_val
     return 0;
 }
 
+static int Audio_Irqcnt1_Get(struct snd_kcontrol *kcontrol,
+                             struct snd_ctl_elem_value *ucontrol)
+{
+    printk("Audio_Irqcnt1_Get \n");
+    AudDrv_Clk_On();
+    ucontrol->value.integer.value[0] =   Afe_Get_Reg(AFE_IRQ_MCU_CNT1);
+    AudDrv_Clk_Off();
+    return 0;
+}
+
+static int Audio_Irqcnt1_Set(struct snd_kcontrol *kcontrol, struct snd_ctl_elem_value *ucontrol)
+{
+    uint32 irq1_cnt =  ucontrol->value.integer.value[0];
+    printk("%s()\n", __func__);
+    AudDrv_Clk_On();
+    Afe_Set_Reg(AFE_IRQ_MCU_CNT1, irq1_cnt, 0xffffffff);
+    AudDrv_Clk_Off();
+    return 0;
+}
+
 static int Audio_Irqcnt2_Get(struct snd_kcontrol *kcontrol,
                              struct snd_ctl_elem_value *ucontrol)
 {
@@ -517,13 +537,19 @@ static void GetAudioTrimOffset(int channels)
             break;
     }
 
-    // Get HPL off offset
+    // init one time
+    setOffsetTrimMux(AUDIO_OFFSET_TRIM_MUX_HPL);
+    EnableTrimbuffer(true);
+    msleep(100);
+    EnableTrimbuffer(false);
+    msleep(100);
+    setOffsetTrimMux(AUDIO_OFFSET_TRIM_MUX_GROUND);
+    msleep(2000);
     SetSdmLevel(AUDIO_SDM_LEVEL_MUTE);
-    msleep(1);
     setOffsetTrimMux(AUDIO_OFFSET_TRIM_MUX_HPL);
     setOffsetTrimBufferGain(3);
     EnableTrimbuffer(true);
-    msleep(1);
+    msleep(100);
 #ifndef CONFIG_MTK_FPGA
     Buffer_offl_value = PMIC_IMM_GetOneChannelValue(AUX_HP_AP, off_counter, 0);
 #else
@@ -537,7 +563,7 @@ static void GetAudioTrimOffset(int channels)
     setOffsetTrimMux(AUDIO_OFFSET_TRIM_MUX_HPR);
     setOffsetTrimBufferGain(3);
     EnableTrimbuffer(true);
-    msleep(5);
+    msleep(100);
 #ifndef CONFIG_MTK_FPGA
     Buffer_offr_value = PMIC_IMM_GetOneChannelValue(AUX_HP_AP, off_counter, 0);
 #else
@@ -545,6 +571,13 @@ static void GetAudioTrimOffset(int channels)
 #endif
     printk("Buffer_offr_value = %d \n", Buffer_offr_value);
     EnableTrimbuffer(false);
+
+    if(abs(Buffer_offr_value - Buffer_offl_value) >= 4)
+    {
+        printk("Buffer_offr_value =%d Buffer_offl_value diff  = %d\n",Buffer_offr_value,Buffer_offl_value);
+        Buffer_offl_value =Buffer_offr_value;
+        printk("Buffer_offr_value =%d Buffer_offl_value  = %d\n",Buffer_offr_value,Buffer_offl_value);
+    }
 
     switch (channels)
     {
@@ -563,7 +596,7 @@ static void GetAudioTrimOffset(int channels)
     setOffsetTrimMux(AUDIO_OFFSET_TRIM_MUX_HPL);
     setOffsetTrimBufferGain(3);
     EnableTrimbuffer(true);
-    msleep(5);
+    msleep(100);
 
     switch (channels)
     {
@@ -577,9 +610,13 @@ static void GetAudioTrimOffset(int channels)
         default:
             break;
     }
+    EnableTrimbuffer(false);
 
-    //int value = 0;
-    msleep(10);
+    // calibrate HPL offset trim
+    setOffsetTrimMux(AUDIO_OFFSET_TRIM_MUX_HPL);
+    setOffsetTrimBufferGain(3);
+    EnableTrimbuffer(true);
+    msleep(100);
 #ifndef CONFIG_MTK_FPGA
     Buffer_on_value = PMIC_IMM_GetOneChannelValue(AUX_HP_AP, on_counter, 0);
 #else
@@ -696,6 +733,7 @@ static const struct snd_kcontrol_new Audio_snd_routing_controls[] =
     SOC_ENUM_EXT("Audio_SideGen_Amplitude", Audio_Routing_Enum[2], Audio_SideGen_Amplitude_Get, Audio_SideGen_Amplitude_Set),
     SOC_ENUM_EXT("Audio_Sidetone_Switch", Audio_Routing_Enum[3], Audio_SideTone_Get, Audio_SideTone_Set),
     SOC_ENUM_EXT("Audio_Mode_Switch", Audio_Routing_Enum[4], Audio_Mode_Get, Audio_Mode_Set),
+    SOC_SINGLE_EXT("Audio IRQ1 CNT", SND_SOC_NOPM, 0, 65536, 0, Audio_Irqcnt1_Get, Audio_Irqcnt1_Set),
     SOC_SINGLE_EXT("Audio IRQ2 CNT", SND_SOC_NOPM, 0, 65536, 0, Audio_Irqcnt2_Get, Audio_Irqcnt2_Set),
     SOC_SINGLE_EXT("Audio HPL Offset", SND_SOC_NOPM, 0 , 0x20000, 0, Audio_Hpl_Offset_Get, Audio_Hpl_Offset_Set),
     SOC_SINGLE_EXT("Audio HPR Offset", SND_SOC_NOPM, 0, 0x20000, 0, Audio_Hpr_Offset_Get, Audio_Hpr_Offset_Set),

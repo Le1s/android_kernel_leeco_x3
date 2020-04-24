@@ -67,6 +67,7 @@
 #include <mach/mt_clkbuf_ctl.h>
 #include <sound/mt_soc_audio.h>
 #include <mach/vow_api.h>
+#include <mach/mt_gpio.h>
 #ifdef CONFIG_MTK_SPEAKER
 #include "mt_soc_codec_speaker_63xx.h"
 #endif
@@ -1786,6 +1787,26 @@ static void Speaker_Amp_Change(bool enable)
             TurnOnDacPower();
         }
         printk("turn on Speaker_Amp_Change \n");
+        mt_set_gpio_dir(GPIO_SPEAKER_EN_PIN,GPIO_DIR_OUT); // output
+        mt_set_gpio_out(GPIO_SPEAKER_EN_PIN,GPIO_OUT_ZERO); // high
+        msleep(10);
+        mt_set_gpio_out(GPIO_SPEAKER_EN_PIN,GPIO_OUT_ONE); // high
+        udelay(2);
+        mt_set_gpio_out(GPIO_SPEAKER_EN_PIN,GPIO_OUT_ZERO); // low
+        udelay(2);
+        mt_set_gpio_out(GPIO_SPEAKER_EN_PIN,GPIO_OUT_ONE); // high
+        udelay(2);
+        mt_set_gpio_out(GPIO_SPEAKER_EN_PIN,GPIO_OUT_ZERO); // low
+        udelay(2);
+        mt_set_gpio_out(GPIO_SPEAKER_EN_PIN,GPIO_OUT_ONE); // high
+        udelay(2);
+        mt_set_gpio_out(GPIO_SPEAKER_EN_PIN,GPIO_OUT_ZERO); // low
+        udelay(2);
+        mt_set_gpio_out(GPIO_SPEAKER_EN_PIN,GPIO_OUT_ONE); // high
+        udelay(2);
+        mt_set_gpio_out(GPIO_SPEAKER_EN_PIN,GPIO_OUT_ZERO); // low
+        udelay(2);
+        mt_set_gpio_out(GPIO_SPEAKER_EN_PIN,GPIO_OUT_ONE); // high
         // here pmic analog control
         //Ana_Set_Reg(AUDNVREGGLB_CFG0  , 0x0000 , 0xffffffff);
         OpenClassAB();
@@ -1822,6 +1843,8 @@ static void Speaker_Amp_Change(bool enable)
     else
     {
         printk("turn off Speaker_Amp_Change \n");
+        mt_set_gpio_dir(GPIO_SPEAKER_EN_PIN,GPIO_DIR_OUT);  // output
+        mt_set_gpio_out(GPIO_SPEAKER_EN_PIN,GPIO_OUT_ZERO); // high
 #ifdef CONFIG_MTK_SPEAKER
         if (Speaker_mode == AUDIO_SPEAKER_MODE_D)
         {
@@ -1885,6 +1908,26 @@ static void Headset_Speaker_Amp_Change(bool enable)
             TurnOnDacPower();
         }
         printk("turn on Speaker_Amp_Change \n");
+        mt_set_gpio_dir(GPIO_SPEAKER_EN_PIN,GPIO_DIR_OUT); // output
+        mt_set_gpio_out(GPIO_SPEAKER_EN_PIN,GPIO_OUT_ZERO); // high
+        msleep(10);
+        mt_set_gpio_out(GPIO_SPEAKER_EN_PIN,GPIO_OUT_ONE); // high
+        udelay(2);
+        mt_set_gpio_out(GPIO_SPEAKER_EN_PIN,GPIO_OUT_ZERO); // low
+        udelay(2);
+        mt_set_gpio_out(GPIO_SPEAKER_EN_PIN,GPIO_OUT_ONE); // high
+        udelay(2);
+        mt_set_gpio_out(GPIO_SPEAKER_EN_PIN,GPIO_OUT_ZERO); // low
+        udelay(2);
+        mt_set_gpio_out(GPIO_SPEAKER_EN_PIN,GPIO_OUT_ONE); // high
+        udelay(2);
+        mt_set_gpio_out(GPIO_SPEAKER_EN_PIN,GPIO_OUT_ZERO); // low
+        udelay(2);
+        mt_set_gpio_out(GPIO_SPEAKER_EN_PIN,GPIO_OUT_ONE); // high
+        udelay(2);
+        mt_set_gpio_out(GPIO_SPEAKER_EN_PIN,GPIO_OUT_ZERO); // low
+        udelay(2);
+        mt_set_gpio_out(GPIO_SPEAKER_EN_PIN,GPIO_OUT_ONE); // high
         // here pmic analog control
         //Ana_Set_Reg(AUDNVREGGLB_CFG0  , 0x0000 , 0xffffffff);
         OpenClassAB();
@@ -1971,6 +2014,8 @@ static void Headset_Speaker_Amp_Change(bool enable)
         Ana_Set_Reg(AUDLDO_NVREG_CFG0  , 0x0000 , 0xffff); // Disable cap-less LDOs (1.6V)
 
         printk("turn off Speaker_Amp_Change \n");
+        mt_set_gpio_dir(GPIO_SPEAKER_EN_PIN,GPIO_DIR_OUT); // output
+        mt_set_gpio_out(GPIO_SPEAKER_EN_PIN,GPIO_OUT_ZERO);// high
         if (GetDLStatus() == false)
         {
             Ana_Set_Reg(AFE_DL_SRC2_CON0_L , 0x1800 , 0xffff);
@@ -3088,6 +3133,8 @@ static bool TurnOnADcPowerACC(int ADCType, bool enable)
             AudioPreAmp1_Sel(mCodec_data->mAudio_Ana_Mux[AUDIO_ANALOG_MUX_IN_PREAMP_1]);
             Audio_ADC1_Set_Input(mCodec_data->mAudio_Ana_Mux[AUDIO_ANALOG_MUX_IN_MIC1]);
             SetDCcoupleNP(AUDIO_ANALOG_DEVICE_IN_ADC1, mAudio_Analog_Mic1_mode);
+            Ana_Set_Reg(AFE_PMIC_NEWIF_CFG2, 0x302F | (GetULNewIFFrequency(mBlockSampleRate[AUDIO_ANALOG_DEVICE_IN_ADC]) << 10), 0xffff); // config UL up8x_rxif adc voice mode
+            Ana_Set_Reg(AFE_UL_SRC0_CON0_H, (ULSampleRateTransform(SampleRate_VUL1) << 3 | ULSampleRateTransform(SampleRate_VUL1) << 1) , 0x001f);// ULsampling rate
         }
         else   if (ADCType == AUDIO_ANALOG_DEVICE_IN_ADC2)
         {
@@ -3478,6 +3525,8 @@ static bool TurnOnADcPowerDCC(int ADCType, bool enable)
             Audio_ADC1_Set_Input(mCodec_data->mAudio_Ana_Mux[AUDIO_ANALOG_MUX_IN_MIC1]);
             SetDCcoupleNP(AUDIO_ANALOG_DEVICE_IN_ADC1, mAudio_Analog_Mic1_mode);
             AudioPreAmp1_Sel(mCodec_data->mAudio_Ana_Mux[AUDIO_ANALOG_MUX_IN_PREAMP_1]);
+            Ana_Set_Reg(AFE_PMIC_NEWIF_CFG2, 0x302F | (GetULNewIFFrequency(mBlockSampleRate[AUDIO_ANALOG_DEVICE_IN_ADC]) << 10), 0xffff); // config UL up8x_rxif adc voice mode
+            Ana_Set_Reg(AFE_UL_SRC0_CON0_H, (ULSampleRateTransform(SampleRate_VUL1) << 3 | ULSampleRateTransform(SampleRate_VUL1) << 1) , 0x001f);// ULsampling rate
         }
         else if (ADCType == AUDIO_ANALOG_DEVICE_IN_ADC2)
         {
