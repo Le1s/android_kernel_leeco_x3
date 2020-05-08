@@ -10,6 +10,8 @@ subdir-ccflags-y += -I$(DRVGEN_OUT)/inc
 subdir-ccflags-y += -DWMT_UART_RX_MODE_WORK=0 # 1. work thread 0. tasklet
 subdir-ccflags-y += -DREMOVE_MK_NODE=1
 subdir-ccflags-y += -DWMT_SDIO_MODE=1
+subdir-ccflags-y += -DWMT_CREATE_NODE_DYNAMIC=0
+subdir-ccflags-y += -DSOC_CO_CLOCK_FLAG=0
 ccflags-y += -I$(src)/linux/include \
 				-I$(src)/core/include \
 				-I$(src)/include \
@@ -93,6 +95,7 @@ mtk_stp_ant$(EXT_FLAG)-objs		:= linux/stp_chrdev_ant.o
 obj-$(CONFIG_MTK_COMBO_GPS) += mtk_stp_gps$(EXT_FLAG).o
 mtk_stp_gps$(EXT_FLAG)-objs	:= linux/stp_chrdev_gps.o
 
+obj-$(CONFIG_MTK_GPS_EMI)	+= gps_emi.o
 
 obj-$(CONFIG_MTK_COMBO_WIFI) += mtk_wmt_wifi$(EXT_FLAG).o
 mtk_wmt_wifi$(EXT_FLAG)-objs       := linux/wmt_chrdev_wifi.o 

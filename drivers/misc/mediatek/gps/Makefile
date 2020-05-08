@@ -11,6 +11,8 @@
 
 include $(srctree)/drivers/misc/mediatek/Makefile.custom
 
+ccflags-y += -I$(srctree)/drivers/misc/mediatek/mach/$(MTK_PLATFORM)/include
+
 obj-$(CONFIG_MTK_GPS)		+= gps.o
 
 # EOF

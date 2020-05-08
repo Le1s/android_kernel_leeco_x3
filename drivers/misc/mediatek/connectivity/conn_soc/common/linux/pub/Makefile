@@ -9,7 +9,9 @@ ccflags-y += -I$(src)/../../linux/include \
 						 -I$(srctree)/drivers/misc/mediatek/connectivity/common_detect \
                          -I$(src)/../include
 
-ccflags-y += -DWMT_CREATE_NODE_DYNAMIC=1
+ccflags-y += -DWMT_CREATE_NODE_DYNAMIC=0
+ccflags-y += -DSOC_CO_CLOCK_FLAG=0
+ccflags-y += -DREMOVE_MK_NODE=1
 
 ifeq ($(CONFIG_MTK_TC1_FEATURE), y)
     ccflags-y += -DCFG_TC1_FEATURE=1
@@ -22,6 +24,7 @@ obj-y += osal.o \
          bgw_desense.o \
          stp_chrdev_bt.o \
          stp_chrdev_gps.o \
+         gps_emi.o
          wmt_chrdev_wifi.o \
          wmt_idc.o
 

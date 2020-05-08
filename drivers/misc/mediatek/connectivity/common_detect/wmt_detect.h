@@ -77,7 +77,11 @@ do { \
 	if (gWmtDetectDbgLvl >= WMT_DETECT_LOG_ERR) \
 		pr_err(DFT_TAG"[E]%s(%d):"  fmt, __func__ , __LINE__, ##arg); \
 } while (0)
-
+#define WMT_DETECT_PR_INFO(fmt, arg...) \
+do { \
+	if (gWmtDetectDbgLvl >= WMT_DETECT_LOG_INFO) \
+		pr_info(DFT_TAG"[I]%s:"  fmt, __func__, ##arg); \
+} while (0)
 #define WMT_IOC_MAGIC			'w'
 #define COMBO_IOCTL_GET_CHIP_ID		  _IOR(WMT_IOC_MAGIC, 0, int)
 #define COMBO_IOCTL_SET_CHIP_ID		  _IOW(WMT_IOC_MAGIC, 1, int)
