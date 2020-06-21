@@ -131,7 +131,6 @@ if (1) {	\
 do {			\
 	char dispatchedTag[50]; \
 	snprintf(dispatchedTag, 50, "CRDISPATCH_KEY:%s", tag); \
-	pr_err("[CMDQ][AEE]"string, ##args); \
 	cmdq_core_save_first_dump("[CMDQ][AEE]"string, ##args); \
 	cmdq_core_turnoff_first_dump(); \
 	aee_kernel_warning_api(__FILE__, __LINE__, DB_OPT_DEFAULT | DB_OPT_PROC_CMDQ_INFO | DB_OPT_MMPROFILE_BUFFER, \
